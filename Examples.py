@@ -23,9 +23,11 @@ from betools import CmdLine
 rootPath = Path(sys.path[0]).parent / "on-java"
 markdown_path = rootPath / "Markdown"
 example_path = rootPath / "ExtractedExamples"
-example_resources = rootPath / "resources" / "Examples"
+# example_resources = rootPath / "resources" / "Examples"
+example_resources = Path(sys.path[0]) / "example-resources"
 
-tools_to_copy = [ rootPath / "tools" / f for f in [
+# tools_to_copy = [ rootPath / "tools" / f for f in [
+tools_to_copy = [ Path(sys.path[0]) / f for f in [
     "output_duet.py",
     "verify_output.py",
 ]]

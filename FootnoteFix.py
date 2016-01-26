@@ -13,20 +13,11 @@ from betools import CmdLine
 rootPath = Path(sys.path[0]).parent / "on-java"
 markdown_dir = rootPath / "Markdown"
 assert markdown_dir.exists()
-# img_dir = markdown_dir / "images"
 build_dir = rootPath / "ebook_build"
 combined_markdown = build_dir / "onjava-assembled.md"
 extracted_footnotes = build_dir / "extracted-footnotes.txt"
 reformatted_footnotes = build_dir / "reformatted-footnotes.txt"
 fixed_markdown = build_dir / "onjava-assembled-footnotes-fixed.md"
-# gdrive_ebooks = Path(r"C:\Users\Bruce\Google Drive\ebooks")
-
-# ebookResources = rootPath / "resources"
-# fonts = ebookResources.glob("UbuntuMono-*.ttf")
-# # fonts = ebookResources.glob("Hack-*.ttf")
-# cover = ebookResources / "cover.jpg"
-# css = ebookResources / "onjava.css"
-# metadata = ebookResources / "metadata.yaml"
 
 
 # @CmdLine('c')
