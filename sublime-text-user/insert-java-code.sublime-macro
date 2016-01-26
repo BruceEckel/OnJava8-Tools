@@ -1,0 +1,20 @@
+[
+	{
+		"args":
+		{
+			"characters": "\n```java\n"
+		},
+		"command": "insert"
+	},
+	{
+		"args": null,
+		"command": "paste"
+	},
+	{
+		"args":
+		{
+			"characters": "```\n"
+		},
+		"command": "insert"
+	},
+]

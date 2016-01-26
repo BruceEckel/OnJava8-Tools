@@ -1,0 +1,8 @@
+<snippet>
+  <content><![CDATA[
+import java.util.stream.*;
+
+]]></content>
+  <tabTrigger>stream</tabTrigger>
+  <scope>source.java</scope>
+</snippet>

@@ -1,0 +1,7 @@
+<snippet>
+  <content><![CDATA[
+<p class="callout">&#x2460;
+]]></content>
+  <tabTrigger>callout</tabTrigger>
+  <!-- <scope>source.Markdown</scope> -->
+</snippet>

@@ -1,0 +1,1 @@
+java -jar "C:\Program Files\epubcheck-4.0.1\epubcheck.jar" "C:\Users\Bruce\Documents\Git\on-java\ebook_build\BruceEckelOnJava.epub"

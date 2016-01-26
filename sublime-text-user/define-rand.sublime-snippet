@@ -1,0 +1,7 @@
+<snippet>
+  <content><![CDATA[
+static Random rand = new Random(47);
+]]></content>
+  <tabTrigger>rand</tabTrigger>
+  <scope>source.java</scope>
+</snippet>

@@ -1,0 +1,7 @@
+[
+    { "keys": ["ctrl+j"], "command": "run_macro_file", "args": {"file": "res://Packages/User/insert-java-code.sublime-macro"} },
+    { "keys": ["f12"],    "command": "update_code_listing" },
+    { "keys": ["f11"],    "command": "insert_current_code_listing" },
+    { "keys": ["f10"],    "command": "line_width_checker" },
+    { "keys": ["f1"],     "command": "edit_code_listing" },
+]

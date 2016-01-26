@@ -1,0 +1,8 @@
+<snippet>
+  <content><![CDATA[
+@Override
+public String toString() { return ""; }
+]]></content>
+  <tabTrigger>toString</tabTrigger>
+  <scope>source.java</scope>
+</snippet>
