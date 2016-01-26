@@ -340,7 +340,7 @@ exec = """\
 """
 
 
-# @CmdLine("m")
+@CmdLine("a")
 def createAntFiles():
     "Make ant files"
     print("Creating Ant Files ...")
