@@ -46,3 +46,5 @@ runs for you, but that's the one that you want to replace in the gradle-build
 project. (Or perhaps, just add a new command to what's already there. Or
 make a whole new Python file, probably).
 
+**Note:** You're only really interested in the `Examples.py` file, for this
+project, and only part of that.
