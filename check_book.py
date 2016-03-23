@@ -1,4 +1,4 @@
-# py -3
+#! python
 """
 Check book for problems before building ebook
 """
