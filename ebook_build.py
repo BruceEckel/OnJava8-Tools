@@ -14,7 +14,7 @@ try:
 except ImportError:
     print("Download psutil wheel from http://www.lfd.uci.edu/~gohlke/pythonlibs/#psutil")
     print("Then run:")
-    print("pip install psutil-3.2.2-cp35-none-win32.whl")
+    print("pip install psutil-4.1.0-cp35-cp35m-win32.whl")
     print("(you may need to substitute the latest version number)")
     sys.exit(1)
 
