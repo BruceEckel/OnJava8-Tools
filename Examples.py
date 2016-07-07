@@ -23,7 +23,6 @@ from betools import CmdLine
 rootPath = Path(sys.path[0]).parent / "on-java"
 markdown_path = rootPath / "Markdown"
 example_path = rootPath / "ExtractedExamples"
-# example_resources = rootPath / "resources" / "Examples"
 example_resources = Path(sys.path[0]) / "example-resources"
 gradle_files = Path(sys.path[0]).parent / "OnJava-Examples"
 
@@ -41,11 +40,11 @@ def extractExamples():
     if not example_path.exists():
         debug("creating {}".format(example_path))
         example_path.mkdir()
-    for f in example_resources.iterdir():
-        if f.is_dir():
-            shutil.copytree(str(f), str(example_path / f.name))
-        if f.is_file():
-            shutil.copy(str(f), str(example_path))
+    # for f in example_resources.iterdir():
+    #     if f.is_dir():
+    #         shutil.copytree(str(f), str(example_path / f.name))
+    #     if f.is_file():
+    #         shutil.copy(str(f), str(example_path))
 
     for f in tools_to_copy:
         shutil.copy(str(f), str(example_path))
@@ -97,7 +96,7 @@ def clean():
             shutil.rmtree(str(example_path))
     except:
         print("Old path removal failed")
-        sys.exit(1)
+        raise RuntimeError()
 
 @CmdLine('e')
 def extractAndCopyBuildFiles():

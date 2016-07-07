@@ -96,11 +96,13 @@ def copy_examples():
 @CmdLine('r')
 def recreate_github_example_directory():
     """
-    Extract code and antfiles, erase old github examples and copy new ones.
+    YOU MUST run e -e by hand first!!
+    Erase old github examples and copy new ones.
     Ensure copyright info is on each file.
     """
-    examples_cmd = config.tools_dir / "Examples.py"
-    os.system("python " + str(examples_cmd) + " -e" )
+    # run this by hand:
+    # examples_cmd = config.tools_dir / "Examples.py"
+    # os.system("python " + str(examples_cmd) + " -e" )
     clean_github_dir()
     copy_examples()
     add_copyright()
