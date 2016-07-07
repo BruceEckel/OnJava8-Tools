@@ -88,15 +88,16 @@ def copyGradleFiles():
             shutil.copy(str(gradle_path), str(dest))
 
 
-
-
 @CmdLine("c")
 def clean():
     "Remove ExtractedExamples directory"
     print("Cleaning ...")
-    if example_path.exists():
-        shutil.rmtree(str(example_path))
-
+    try:
+        if example_path.exists():
+            shutil.rmtree(str(example_path))
+    except:
+        print("Old path removal failed")
+        sys.exit(1)
 
 @CmdLine('e')
 def extractAndCopyBuildFiles():

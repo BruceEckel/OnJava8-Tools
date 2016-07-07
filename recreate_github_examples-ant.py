@@ -41,44 +41,27 @@ def add_copyright():
                     crighted.writelines(copyrighted)
 
 
-# exclude = [
-#     "build.gradle",
-#     "gradlew",
-#     "gradlew.bat",
-#     "gradle",
-#     "appveyor.yml"
-# ]
+exclude = [
+    "build.gradle",
+    "gradlew",
+    "gradlew.bat",
+    "gradle",
+    "appveyor.yml"
+]
 
-# @CmdLine('c')
-# def clean_github_dir():
-#     "Clean github example code directory"
-#     print("Removing old github files >>>>>>>>>>>>")
-#     for f in (
-#             x for x in config.github_code_dir.glob("*")
-#             if not x.stem.startswith(".")
-#             and x.name not in exclude):
-#         print("removing: ", f.name)
-#         if f.is_dir():
-#             shutil.rmtree(str(f))
-#         else:
-#             f.unlink()
-
-@CmdLine("c")
+@CmdLine('c')
 def clean_github_dir():
     "Clean github example code directory"
-    print("Cleaning ...")
-    try:
-        for f in (
-                x for x in config.github_code_dir.glob("*")
-                if not x.stem.startswith(".")):
-            print("removing: ", f.name)
-            if f.is_dir():
-                shutil.rmtree(str(f))
-            else:
-                f.unlink()
-    except:
-        print("Error removing files")
-        sys.exit(1)
+    print("Removing old github files >>>>>>>>>>>>")
+    for f in (
+            x for x in config.github_code_dir.glob("*")
+            if not x.stem.startswith(".")
+            and x.name not in exclude):
+        print("removing: ", f.name)
+        if f.is_dir():
+            shutil.rmtree(str(f))
+        else:
+            f.unlink()
 
 
 @CmdLine('e')
