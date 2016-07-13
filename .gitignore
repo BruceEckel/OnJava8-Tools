@@ -29,4 +29,5 @@ $RECYCLE.BIN/
 tmp*.txt
 *.class
 *.zip
+*.log
 
