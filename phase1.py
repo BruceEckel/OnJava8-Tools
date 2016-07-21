@@ -16,6 +16,7 @@ def fill_to_width(text):
     return result.strip()
 
 def adjust_lines(text):
+    text = text.replace("\0", "NUL")
     lines = text.splitlines()
     slug = lines[0]
     if "(First and Last " in slug:
