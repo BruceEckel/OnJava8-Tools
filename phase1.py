@@ -21,7 +21,7 @@ def adjust_lines(text):
     if "(First and Last " in slug:
         num_of_lines = int(slug.split()[5])
         adjusted = lines[:num_of_lines + 1] +\
-            ["________...________...________...________...________"] +\
+            ["...________...________...________...________..."] +\
             lines[-num_of_lines:]
         return "\n".join(adjusted)
     elif "(First " in slug:
@@ -35,7 +35,7 @@ def adjust_lines(text):
 if __name__ == '__main__':
     for outfile in Path(".").rglob("*.out"):
         out_text = adjust_lines(outfile.read_text())
-        phase_1 = outfile.with_suffix(".1")
+        phase_1 = outfile.with_suffix(".p1")
         with phase_1.open('w') as phs1:
             phs1.write(fill_to_width(out_text) + "\n")
             errfile = outfile.with_suffix(".err")
