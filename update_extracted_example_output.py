@@ -29,7 +29,7 @@ def update_file(outfile):
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        pass
+        update_file(Path(sys.argv[1]))
     else:
         for outfile in Path(".").rglob("*.p1"):
             update_file(outfile)
