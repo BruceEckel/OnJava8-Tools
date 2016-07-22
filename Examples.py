@@ -30,7 +30,6 @@ gradle_files = Path(sys.path[0]).parent / "OnJava-Examples"
 tools_to_copy = [ Path(sys.path[0]) / f for f in [
     "output_duet.py",
     "verify_output.py",
-    "phase1.py",
     "test_output.py",
     "update_extracted_example_output.py",
 ]]
