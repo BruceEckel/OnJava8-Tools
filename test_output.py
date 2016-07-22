@@ -7,8 +7,6 @@
 from pathlib import Path
 import re
 
-import pprint
-
 
 if __name__ == '__main__':
     find_output = re.compile(r"/\* (Output:.*)\*/", re.DOTALL) # should space be \s+ ??
@@ -28,10 +26,5 @@ if __name__ == '__main__':
                 nomatch.write(str(embedded_output) + "\n\n")
                 nomatch.write("=== Actual ===\n\n")
                 nomatch.write(str(new_output))
-
-
-
-
-
-        # with phase_1.open('w') as phs1:
-        #     phs1.write(fill_to_width(out_text) + "\n")
+    for nomatch in Path(".").rglob("*.nomatch"):
+        print(nomatch)
