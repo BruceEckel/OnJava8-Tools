@@ -26,5 +26,6 @@ if __name__ == '__main__':
                 nomatch.write(str(embedded_output) + "\n\n")
                 nomatch.write("=== Actual ===\n\n")
                 nomatch.write(str(new_output))
+    print(" No Match ".center(45, "="))
     for nomatch in Path(".").rglob("*.nomatch"):
         print(nomatch)
