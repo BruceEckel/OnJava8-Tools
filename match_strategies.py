@@ -5,13 +5,6 @@ import re
 import textwrap
 import functools
 
-def trace(str): pass
-# trace = print
-
-maxlinewidth = 59
-current_dir_name = Path.cwd().stem
-word_only = re.compile("[A-Za-z]+")
-
 datestamp1 = re.compile("(?:[MTWFS][a-z]{2} ){0,1}[JFMASOND][a-z]{2} \d{1,2} \d{2}:\d{2}:\d{2} [A-Z]{3} \d{4}")
 datestamp2 = re.compile("[JFMASOND][a-z]{2} \d{1,2}, \d{4} \d{1,2}:\d{1,2}:\d{1,2} (:?AM|PM)")
 
@@ -24,7 +17,6 @@ def trim(block):
     return trimmed.strip()
 
 def ignore_digits(input_text):
-    trace("Ignoring digits")
     return trim(re.sub("-?\d", "", input_text))
 
 memlocation = re.compile("@[0-9a-z]{5,7}")
@@ -48,6 +40,7 @@ def unique_words(input_text):
     return "\n".join(sorted(set(input_text.split())))
 
 # Fairly extreme but will still reveal significant changes
+word_only = re.compile("[A-Za-z]+")
 def words_only(input_text):
     return "\n".join(
         sorted([w for w in input_text.split()
