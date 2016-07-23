@@ -1,9 +1,9 @@
 # Requires Python 3.5 or greater
-import sys
 from pathlib import Path
+import sys
 import re
 import textwrap
-from enum import Enum, unique
+import functools
 
 def trace(str): pass
 # trace = print
@@ -15,82 +15,66 @@ word_only = re.compile("[A-Za-z]+")
 datestamp1 = re.compile("(?:[MTWFS][a-z]{2} ){0,1}[JFMASOND][a-z]{2} \d{1,2} \d{2}:\d{2}:\d{2} [A-Z]{3} \d{4}")
 datestamp2 = re.compile("[JFMASOND][a-z]{2} \d{1,2}, \d{4} \d{1,2}:\d{1,2}:\d{1,2} (:?AM|PM)")
 
+# From https://mathieularose.com/function-composition-in-python/
+def compose(*functions):
+    return functools.reduce(lambda f, g: lambda x: f(g(x)), functions, lambda x: x)
 
 def trim(block):
     trimmed = "\n".join([ln.rstrip() for ln in block.splitlines()])
     return trimmed.strip()
 
+def ignore_digits(input_text):
+    trace("Ignoring digits")
+    return trim(re.sub("-?\d", "", input_text))
 
-class Strategy:
-    chain = []
-    def filter(self, input_text): pass
-    @staticmethod
-    def match(code_output, generated_output):
-        for strategy in chain:
-            if strategy.filter(code_output) == strategy.filter(generated_output):
-                return strategy.__class__.__name__
-        else:
-            return None
+memlocation = re.compile("@[0-9a-z]{5,7}")
+def ignore_memory_addresses(input_text):
+    return trim(memlocation.sub("", input_text))
 
+ignore_digits_and_memory_addresses = compose(ignore_digits, ignore_memory_addresses)
+ignore_digits_and_memory_addresses.__name__ = "ignore_digits_and_memory_addresses"
 
-class IgnoreDigits(Strategy):
-    def filter(self, input_text):
-        trace("Ignoring digits")
-        return trim(re.sub("-?\d", "", input_text))
+def sort_lines(input_text):
+    return "\n".join(sorted(input_text.splitlines())).strip()
 
-Strategy.chain.append(IgnoreDigits())
+def sort_words(input_text):
+    return "\n".join(sorted(input_text.split())).strip()
 
+def unique_lines(input_text):
+    return "\n".join(sorted(list(set(input_text.splitlines()))))
 
-class IgnoreMemoryAddresses(Strategy):
-    memlocation = re.compile("@[0-9a-z]{5,7}")
-    def filter(self, input_text):
-        return trim(memlocation.sub("", input_text))
+# Fairly extreme but will still reveal significant changes
+def unique_words(input_text):
+    return "\n".join(sorted(set(input_text.split())))
 
-Strategy.chain.append(IgnoreMemoryAddresses())
+# Fairly extreme but will still reveal significant changes
+def words_only(input_text):
+    return "\n".join(
+        sorted([w for w in input_text.split()
+                if word_only.fullmatch(w)]))
 
+chain_of_responsibility = [
+    ignore_digits,
+    ignore_memory_addresses,
+    ignore_digits_and_memory_addresses,
+    sort_lines,
+    sort_words,
+    unique_lines,
+    unique_words,
+    words_only,
+]
 
-class SortLines(Strategy):
-    def filter(self, input_text):
-        return "\n".join(sorted(input_text.splitlines())).strip()
-
-Strategy.chain.append(SortLines())
-
-
-class SortWords(Strategy):
-    def filter(self, input_text):
-        return "\n".join(sorted(input_text.split())).strip()
-
-Strategy.chain.append(SortWords())
-
-
-class UniqueLines(Strategy):
-    def filter(self, input_text):
-        return "\n".join(sorted(list(set(input_text.splitlines()))))
-
-Strategy.chain.append(UniqueLines())
-
-
-class UniqueWords(Strategy):
-    # Fairly extreme but will still reveal significant changes
-    def filter(self, input_text):
-        return "\n".join(sorted(set(input_text.split())))
-
-Strategy.chain.append(UniqueWords())
-
-
-class WordsOnly(Strategy):
-    # Fairly extreme but will still reveal significant changes
-    def filter(self, input_text):
-        return "\n".join(
-            sorted([w for w in input_text.split()
-                    if word_only.fullmatch(w)]))
-
-Strategy.chain.append(WordsOnly())
+def find_strategy(code_output, generated_output):
+    for strategy in chain_of_responsibility:
+        if strategy(code_output) == strategy(generated_output):
+            return strategy.__name__
+    else:
+        return None
 
 
 if __name__ == '__main__':
-    for strategy in Strategy.chain:
-        print(strategy.__class__.__name__)
+    for strategy in chain_of_responsibility:
+        print(strategy.__name__)
 
 # match_adjustments = {
 #     "ToastOMatic.java" : sort_lines,
