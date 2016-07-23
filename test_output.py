@@ -7,6 +7,7 @@
 from pathlib import Path
 import textwrap
 import re
+import match_strategies
 
 def fill_to_width(text):
     result = ""
@@ -64,6 +65,10 @@ if __name__ == '__main__':
         new_output = outfile.read_text().strip()
         if new_output == embedded_output:
             print(str(javafile))
+            continue
+        sr = match_strategies.find_strategy(embedded_output, new_output)
+        if sr:
+            print(str(javafile) + " matches via " + sr)
         else:
             with outfile.with_suffix(".nomatch").open('w') as nomatch:
                 nomatch.write(str(embedded_output) + "\n\n")

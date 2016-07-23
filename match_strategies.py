@@ -3,14 +3,9 @@ from pathlib import Path
 import sys
 import re
 import textwrap
-import functools
 
 datestamp1 = re.compile("(?:[MTWFS][a-z]{2} ){0,1}[JFMASOND][a-z]{2} \d{1,2} \d{2}:\d{2}:\d{2} [A-Z]{3} \d{4}")
 datestamp2 = re.compile("[JFMASOND][a-z]{2} \d{1,2}, \d{4} \d{1,2}:\d{1,2}:\d{1,2} (:?AM|PM)")
-
-# From https://mathieularose.com/function-composition-in-python/
-def compose(*functions):
-    return functools.reduce(lambda f, g: lambda x: f(g(x)), functions, lambda x: x)
 
 def trim(block):
     trimmed = "\n".join([ln.rstrip() for ln in block.splitlines()])
@@ -23,8 +18,9 @@ memlocation = re.compile("@[0-9a-z]{5,7}")
 def ignore_memory_addresses(input_text):
     return trim(memlocation.sub("", input_text))
 
-ignore_digits_and_memory_addresses = compose(ignore_digits, ignore_memory_addresses)
-ignore_digits_and_memory_addresses.__name__ = "ignore_digits_and_memory_addresses"
+def ignore_digits_and_memory_addresses(input_text):
+    return ignore_memory_addresses(
+        ignore_digits(input_text))
 
 def sort_lines(input_text):
     return "\n".join(sorted(input_text.splitlines())).strip()
