@@ -11,12 +11,12 @@ def trim(block):
     trimmed = "\n".join([ln.rstrip() for ln in block.splitlines()])
     return trimmed.strip()
 
-def ignore_digits(input_text):
-    return trim(re.sub("-?\d", "", input_text))
-
 memlocation = re.compile("@[0-9a-z]{5,7}")
 def ignore_memory_addresses(input_text):
     return trim(memlocation.sub("", input_text))
+
+def ignore_digits(input_text):
+    return trim(re.sub("-?\d", "", input_text))
 
 def ignore_digits_and_memory_addresses(input_text):
     return ignore_memory_addresses(
@@ -43,8 +43,8 @@ def words_only(input_text):
                 if word_only.fullmatch(w)]))
 
 chain_of_responsibility = [
-    ignore_digits,
     ignore_memory_addresses,
+    ignore_digits,
     ignore_digits_and_memory_addresses,
     sort_lines,
     sort_words,

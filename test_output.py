@@ -66,9 +66,9 @@ if __name__ == '__main__':
         if new_output == embedded_output:
             print(str(javafile))
             continue
-        sr = match_strategies.find_strategy(embedded_output, new_output)
-        if sr:
-            print(str(javafile) + " matches via " + sr)
+        success = match_strategies.find_strategy(embedded_output, new_output)
+        if success:
+            print(str(javafile) + " [" + success + "]")
         else:
             with outfile.with_suffix(".nomatch").open('w') as nomatch:
                 nomatch.write(str(embedded_output) + "\n\n")
