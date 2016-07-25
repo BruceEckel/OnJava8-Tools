@@ -16,7 +16,6 @@ import re
 import shutil
 import pprint
 import difflib
-from collections import defaultdict
 from betools import CmdLine
 
 

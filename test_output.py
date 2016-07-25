@@ -7,6 +7,8 @@
 from pathlib import Path
 import textwrap
 import re
+from collections import defaultdict
+import pprint
 import match_strategies
 
 def fill_to_width(text):
@@ -51,9 +53,11 @@ def phase1():
                 phs1.write(fill_to_width(errfile.read_text()) + "\n")
             phs1.write("*/\n")
 
+
 if __name__ == '__main__':
     phase1()
     find_output = re.compile(r"/\* (Output:.*)\*/", re.DOTALL) # should space be \s+ ??
+    results = defaultdict(list)
     for outfile in Path(".").rglob("*.p1"):
         javafile = outfile.with_suffix(".java")
         if not javafile.exists():
@@ -63,17 +67,19 @@ if __name__ == '__main__':
             print(str(outfile) + " has no /* Output:")
         embedded_output = find_output.search(javatext).group(0).strip()
         new_output = outfile.read_text().strip()
-        if new_output == embedded_output:
-            print(str(javafile))
-            continue
-        success = match_strategies.find_strategy(embedded_output, new_output)
+        success = match_strategies.find_match(embedded_output, new_output)
         if success:
-            print(str(javafile) + " [" + success + "]")
+            results[success].append(str(javafile))
         else:
             with outfile.with_suffix(".nomatch").open('w') as nomatch:
                 nomatch.write(str(embedded_output) + "\n\n")
                 nomatch.write("=== Actual ===\n\n")
                 nomatch.write(str(new_output))
-    print(" No Match ".center(45, "="))
+    for mt in match_strategies.match_types:
+        if mt in results:
+            print("\n" + (" " + mt + " ").center(45, "="))
+            for java in results[mt]:
+                print(java)
+    print("\n" + " No Match ".center(45, "="))
     for nomatch in Path(".").rglob("*.nomatch"):
         print(nomatch)
