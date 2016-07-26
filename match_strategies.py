@@ -4,13 +4,11 @@ import sys
 import re
 import textwrap
 
-def trim(block):
-    trimmed = "\n".join([ln.rstrip() for ln in block.splitlines()])
-    return trimmed.strip()
-
 memlocation = re.compile("@[0-9a-z]{5,7}")
 datestamp1 = re.compile("(?:[MTWFS][a-z]{2} ){0,1}[JFMASOND][a-z]{2} \d{1,2} \d{2}:\d{2}:\d{2} [A-Z]{3} \d{4}")
 datestamp2 = re.compile("[JFMASOND][a-z]{2} \d{1,2}, \d{4} \d{1,2}:\d{1,2}:\d{1,2} (:?AM|PM)")
+
+def exact_match(text): return text
 
 def ignore_memory_addresses_and_dates(text):
     for pat in [ memlocation, datestamp1, datestamp2 ]:
@@ -18,7 +16,7 @@ def ignore_memory_addresses_and_dates(text):
     return text
 
 def ignore_digits(input_text):
-    return trim(re.sub("-?\d", "", input_text))
+    return re.sub("-?\d", "", input_text)
 
 def sort_lines(input_text):
     return "\n".join(sorted(input_text.splitlines())).strip()
@@ -41,141 +39,26 @@ def words_only(input_text):
                 if word_only.fullmatch(w)]))
 
 chain_of_responsibility = [
-    ignore_digits,
-    sort_lines,
-    sort_words,
-    unique_lines,
-    unique_words,
-    words_only,
+    # Filter                               Retain result for rest of chain
+    (exact_match,                           False),
+    (ignore_memory_addresses_and_dates,     True ),
+    (ignore_digits,                         False),
+    (sort_lines,                            False),
+    (sort_words,                            False),
+    (unique_lines,                          False),
+    (unique_words,                          False),
+    (words_only,                            False),
 ]
 
-match_types = [
-    "ignore_memory_addresses_and_dates",
-] + [nm.__name__ for nm in chain_of_responsibility]
 
 def find_match(code_output, generated_output):
-    if code_output == generated_output:
-        return "exact_match"
-    code_output = ignore_memory_addresses_and_dates(code_output)
-    generated_output = ignore_memory_addresses_and_dates(generated_output)
-    if code_output == generated_output:
-        return "ignore_memory_addresses_and_dates"
-    for strategy in chain_of_responsibility:
-        if strategy(code_output) == strategy(generated_output):
+    for strategy, retain in chain_of_responsibility:
+        filtered_code_output = strategy(code_output)
+        filtered_generated_output = strategy(generated_output)
+        if filtered_code_output == filtered_generated_output:
             return strategy.__name__
+        if retain:
+            code_output = filtered_code_output
+            generated_output = filtered_generated_output
     else:
         return None
-
-
-if __name__ == '__main__':
-    print(match_types)
-
-# match_adjustments = {
-#     "ToastOMatic.java" : sort_lines,
-#     "ThreadVariations.java" : sort_lines,
-#     "ActiveObjectDemo.java" : [sort_lines, ignore_digits],
-#     "Interrupting.java" : sort_lines,
-#     "SyncObject.java" : sort_lines,
-#     "UseCaseTracker.java" : sort_lines,
-#     "AtUnitComposition.java" : sort_lines,
-#     "AtUnitExample1.java" : sort_lines,
-#     "AtUnitExample2.java" : sort_lines,
-#     "AtUnitExample3.java" : sort_lines,
-#     "AtUnitExample5.java" : sort_lines,
-#     "AtUnitExternalTest.java" : sort_lines,
-#     "HashSetTest.java" : sort_lines,
-#     "StackLStringTest.java" : sort_lines,
-#     "WaxOMatic2.java" : sort_lines,
-
-#     "ForEach.java" : sort_words,
-#     "PetCount4.java" : [RemoveCharacters("{}"), sort_words],
-
-#     "CachedThreadPool.java" : words_only,
-#     "FixedThreadPool.java" : words_only,
-#     "MoreBasicThreads.java" : words_only,
-#     "ConstantSpecificMethod.java" : words_only,
-
-#     "BankTellerSimulation.java" : [words_only, unique_words],
-
-#     "MapComparisons.java" : ignore_digits,
-#     "ListComparisons.java" : ignore_digits,
-#     "NotifyVsNotifyAll.java" : ignore_digits,
-#     "SelfManaged.java" : ignore_digits,
-#     "SimpleMicroBenchmark.java" : ignore_digits,
-#     "SimpleThread.java" : ignore_digits,
-#     "SleepingTask.java" : ignore_digits,
-#     "ExchangerDemo.java" : ignore_digits,
-#     "Compete.java" : ignore_digits,
-#     "MappedIO.java" : ignore_digits,
-#     "Directories.java" : ignore_digits,
-#     "Find.java" : ignore_digits,
-#     "PathAnalysis.java" : ignore_digits,
-#     "TreeWatcher.java" : ignore_digits,
-#     "Mixins.java" : ignore_digits,
-#     "ListPerformance.java" : ignore_digits,
-#     "MapPerformance.java" : ignore_digits,
-#     "SetPerformance.java" : ignore_digits,
-#     "SynchronizationComparisons.java" : ignore_digits,
-#     "AtomicityTest.java" : ignore_digits,
-#     "TypesForSets.java" : ignore_digits,
-#     "PrintableLogRecord.java" : ignore_digits,
-#     "LockingMappedFiles.java" : ignore_digits,
-
-
-#     "Conversion.java" : IgnoreLines(27, 28),
-#     "DynamicProxyMixin.java" : IgnoreLines(2),
-#     "PreferencesDemo.java" : IgnoreLines(5),
-#     "AtUnitExample4.java" : IgnoreLines(6, 9),
-
-#     "SerialNumberChecker.java" : [ignore_digits, unique_lines],
-#     "EvenSupplier.java" : [ignore_digits, unique_lines],
-
-#     "FillingLists.java" : [ ignore_memory_addresses, sort_words ],
-
-#     "SimpleDaemons.java" : [ ignore_memory_addresses, ignore_digits ],
-#     "CaptureUncaughtException.java" : [
-#         ignore_memory_addresses, ignore_digits, unique_lines ],
-
-#     "CarBuilder.java" : [ ignore_digits, unique_lines ],
-#     "CloseResource.java" : [ unique_lines ],
-
-#     "SpringDetector.java" : [ ignore_digits, sort_words ],
-
-#     "PipedIO.java" : [ unique_words ],
-
-#     "CriticalSection.java" : ignore_digits,
-#     "ExplicitCriticalSection.java" : ignore_digits,
-# }
-
-
-# translate_file_name = {
-#     "ApplyTest.java": "Apply.java",
-#     "FillTest.java": "Fill.java",
-#     "Fill2Test.java": "Fill2.java",
-#     "ClassInInterface$Test.java": "ClassInInterface.java",
-#     "TestBed$Tester.java": "TestBed.java",
-# }
-
-
-
-# class RemoveCharacters(Strategy):
-#     def __init__(self, chars_to_remove):
-#         self.chars_to_remove = chars_to_remove
-#     def filter(self, input_text):
-#         for c in self.chars_to_remove:
-#             input_text = input_text.replace(c, "")
-#         return input_text
-
-
-# class IgnoreLines(Strategy):
-#     def __init__(self, *lines_to_ignore):
-#         self.lines_to_ignore = lines_to_ignore
-#     def filter(self, input_text):
-#         lines = input_text.splitlines()
-#         for ignore in sorted(list(self.lines_to_ignore), reverse=True):
-#             ignore = ignore - 1 # Compensate for zero indexing
-#             print("ignoring line %d: %s" % (ignore, lines[ignore]))
-#             del lines[ignore]
-#         return "\n".join(lines)
-
-

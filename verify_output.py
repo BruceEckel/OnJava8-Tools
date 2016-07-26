@@ -1,71 +1,167 @@
-# Requires Python 3.5 or greater
-"""
-ToDo:
-    - Validate errors
-"""
+#! py -3
+# Requires Python 3.5
+# Validates output from executable Java programs in "On Java 8."
+# If direct comparison of actual output with output stored in Java file fails,
+# Use chain of responsibility to successively try strategies until one matches
+# or all fail
 from pathlib import Path
-from output_duet import Duet, Valid
+import textwrap
+import re
+import sys
 import os
-import collections
-import pprint
-import itertools
+import textwrap
+from collections import defaultdict
+WIDTH = 59 # Max line width
 
-def trace(*str): pass
-# trace = print
+#################### Phase 1: Basic formatting #####################
 
-def clean():
-    for p in (Path(f) for f in [
-            "update_output.bat",
-            "edit_errors.bat",
-            "strategies.txt",
-            "validate_successes.txt",
-            "validate_failures.txt",
-        ]):
-        if p.exists():
-            p.unlink()
+def fill_to_width(text):
+    result = ""
+    for line in text.splitlines():
+        result += textwrap.fill(line, width = WIDTH) + "\n"
+    return result.strip()
+
+def adjust_lines(text):
+    text = text.replace("\0", "NUL")
+    lines = text.splitlines()
+    slug = lines[0]
+    if "(First and Last " in slug:
+        num_of_lines = int(slug.split()[5])
+        adjusted = lines[:num_of_lines + 1] +\
+            ["...________...________...________...________..."] +\
+            lines[-num_of_lines:]
+        return "\n".join(adjusted)
+    elif "(First " in slug:
+        num_of_lines = int(slug.split()[3])
+        adjusted = lines[:num_of_lines + 1] +\
+            ["                  ..."]
+        return "\n".join(adjusted)
+    else:
+        return text
+
+def phase1():
+    """
+    (0) Do first/last lines before formatting to width
+    (1) Combine output and error (if present) files
+    (2) Format all output to width limit
+    (3) Add closing '*/'
+    """
+    for outfile in Path(".").rglob("*.out"):
+        out_text = adjust_lines(outfile.read_text())
+        phase_1 = outfile.with_suffix(".p1")
+        with phase_1.open('w') as phs1:
+            phs1.write(fill_to_width(out_text) + "\n")
+            errfile = outfile.with_suffix(".err")
+            if errfile.exists():
+                phs1.write("___[ Error Output ]___\n")
+                phs1.write(fill_to_width(errfile.read_text()) + "\n")
+            phs1.write("*/\n")
+
+
+########### Chain of Responsibility Match Finder #######################
+
+memlocation = re.compile("@[0-9a-z]{5,7}")
+datestamp1 = re.compile(
+    "(?:[MTWFS][a-z]{2} ){0,1}[JFMASOND][a-z]{2} \d{1,2} \d{2}:\d{2}:\d{2} [A-Z]{3} \d{4}")
+datestamp2 = re.compile(
+    "[JFMASOND][a-z]{2} \d{1,2}, \d{4} \d{1,2}:\d{1,2}:\d{1,2} (:?AM|PM)")
+
+def exact_match(text): return text
+
+def ignore_memory_addresses_and_dates(text):
+    for pat in [ memlocation, datestamp1, datestamp2 ]:
+        text = pat.sub("", text)
+    return text
+
+def ignore_digits(input_text):
+    return re.sub("-?\d", "", input_text)
+
+def sort_lines(input_text):
+    return "\n".join(sorted(input_text.splitlines())).strip()
+
+def sort_words(input_text):
+    return "\n".join(sorted(input_text.split())).strip()
+
+def unique_lines(input_text):
+    return "\n".join(sorted(list(set(input_text.splitlines()))))
+
+# Fairly extreme but will still reveal significant changes
+def unique_words(input_text):
+    return "\n".join(sorted(set(input_text.split())))
+
+# Fairly extreme but will still reveal significant changes
+word_only = re.compile("[A-Za-z]+")
+def words_only(input_text):
+    return "\n".join(
+        sorted([w for w in input_text.split()
+                if word_only.fullmatch(w)]))
+
+# Chain of responsibility:
+strategies = [
+    # Filter                               Retain result for rest of chain
+    (exact_match,                           False),
+    (ignore_memory_addresses_and_dates,     True ),
+    (ignore_digits,                         False),
+    (sort_lines,                            False),
+    (sort_words,                            False),
+    (unique_lines,                          False),
+    (unique_words,                          False),
+    (words_only,                            False),
+]
+
+
+def find_output_match(code_output, generated_output):
+    for strategy, retain in strategies:
+        filtered_code_output = strategy(code_output)
+        filtered_generated_output = strategy(generated_output)
+        if filtered_code_output == filtered_generated_output:
+            return strategy.__name__
+        if retain:
+            code_output = filtered_code_output
+            generated_output = filtered_generated_output
+    else:
+        return None
 
 
 if __name__ == '__main__':
-    clean()
-    jfiles = sorted([java.name for java in Path(".").glob("**/*.java")])
-    duplicates = sorted([x for x, y in collections.Counter(jfiles).items() if y > 1])
-    if duplicates:
-        print("Duplicates:")
-        pprint.pprint(duplicates)
-
-    count = 0
-    for output in itertools.chain(Path(".").glob("**/*.out"), Path(".").glob("**/*.err")):
-        duet = Duet(output)
-        # if duet.error:
-        #     os.system("subl {}".format(duet.java_path))
-        trace("duet.ignore:", duet.ignore, duet.java_path )
-        if duet.ignore:
-            continue
-        v = duet.validate()
-        if v is Valid.fail:
-            with Path("validate_failures.txt").open('a') as vf:
-                print(duet, file = vf)
-            with Path("strategies.txt").open('a') as st:
-                print('    "' + duet.java_path.name + '" : IgnoreSortedLines(),', file = st)
-            with Path("update_output.bat").open('a') as uo:
-                print('call no ' + str(duet.out_path.with_suffix(".new")), file = uo)
-            with Path("edit_errors.bat").open('a') as eo:
-                print('subl ' + str(duet.java_path), file = eo)
-            if duet.error:
-                duet.out_path.with_suffix(".new").write_text(duet.generated_un_adjusted)
-                os.system('subl ' + str(duet.out_path.with_suffix(".new")))
+    phase1() # Generates '.p1' files
+    find_output = re.compile(r"/\* (Output:.*)\*/", re.DOTALL)
+    results = defaultdict(list) # Map of lists
+    log = open("verified_output.txt", 'w')
+    for outfile in Path(".").rglob("*.p1"):
+        javafile = outfile.with_suffix(".java")
+        if not javafile.exists():
+            log.write(str(outfile) + " has no javafile\n")
+        javatext = javafile.read_text()
+        if "/* Output:" not in javatext:
+            log.write(str(outfile) + " has no /* Output:\n")
+        embedded_output = find_output.search(javatext).group(0).strip()
+        new_output = outfile.read_text().strip()
+        success = find_output_match(embedded_output, new_output)
+        if success:
+            results[success].append(str(javafile))
         else:
-            with Path("validate_successes.txt").open('a') as vs:
-                print("{:<20}".format(v) + "{}".format(duet.java_path), file = vs)
-        count += 1
-    print("\n" + " Verified files = {} ".format(count).center(60, "*"))
+            with outfile.with_suffix(".nomatch").open('w') as nomatch:
+                nomatch.write(str(embedded_output) + "\n\n")
+                nomatch.write("=== Actual ===\n\n")
+                nomatch.write(str(new_output))
 
-    if Path("validate_failures.txt").exists():
-        os.system("subl "
-            "update_output.bat "
-            "edit_errors.bat "
-            "strategies.txt "
-            "validate_successes.txt "
-            "validate_failures.txt")
-    else:
-         print("\n" + " No Output Errors ".center(60, "="))
+    # Display results:
+    def header(id):
+        if id is "exact_match": return
+        log.write("\n" + (" " + id + " ").center(45, "=") + "\n")
+
+    for strategy, retain in strategies:
+        key = strategy.__name__
+        header(key)
+        if key is "exact_match":
+            for java in results[key]:
+                print(java)
+        elif key in results:
+            for java in results[key]:
+                log.write(java + "\n")
+    header("No Match")
+    for nomatch in Path(".").rglob("*.nomatch"):
+        log.write(str(nomatch) + "\n")
+    log.close()
+    os.system("more verified_output.txt")
