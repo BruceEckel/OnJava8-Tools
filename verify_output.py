@@ -110,6 +110,12 @@ strategies = [
 ]
 
 
+class ValidationResults(defaultdict): # Map of lists
+    def __init__(self):
+        super().__init__(list)
+
+validation_results = ValidationResults()
+
 def find_output_match(code_output, generated_output):
     for strategy, retain in strategies:
         filtered_code_output = strategy(code_output)
@@ -126,20 +132,20 @@ def find_output_match(code_output, generated_output):
 if __name__ == '__main__':
     phase1() # Generates '.p1' files
     find_output = re.compile(r"/\* (Output:.*)\*/", re.DOTALL)
-    results = defaultdict(list) # Map of lists
-    log = open("verified_output.txt", 'w')
     for outfile in Path(".").rglob("*.p1"):
         javafile = outfile.with_suffix(".java")
         if not javafile.exists():
-            log.write(str(outfile) + " has no javafile\n")
+            print(str(outfile) + " has no javafile")
+            sys.exit(1)
         javatext = javafile.read_text()
         if "/* Output:" not in javatext:
-            log.write(str(outfile) + " has no /* Output:\n")
+            print(str(outfile) + " has no /* Output:")
+            sys.exit(1)
         embedded_output = find_output.search(javatext).group(0).strip()
         new_output = outfile.read_text().strip()
         success = find_output_match(embedded_output, new_output)
         if success:
-            results[success].append(str(javafile))
+            validation_results[success].append(str(javafile))
         else:
             with outfile.with_suffix(".nomatch").open('w') as nomatch:
                 nomatch.write(str(embedded_output) + "\n\n")
@@ -147,6 +153,7 @@ if __name__ == '__main__':
                 nomatch.write(str(new_output))
 
     # Display results:
+    log = open("verified_output.txt", 'w')
     def header(id):
         if id is "exact_match": return
         log.write("\n" + (" " + id + " ").center(45, "=") + "\n")
@@ -155,10 +162,10 @@ if __name__ == '__main__':
         key = strategy.__name__
         header(key)
         if key is "exact_match":
-            for java in results[key]:
+            for java in validation_results[key]:
                 print(java)
-        elif key in results:
-            for java in results[key]:
+        elif key in validation_results:
+            for java in validation_results[key]:
                 log.write(java + "\n")
     header("No Match")
     for nomatch in Path(".").rglob("*.nomatch"):
