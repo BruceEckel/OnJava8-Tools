@@ -15,12 +15,6 @@ WIDTH = 59 # Max line width
 
 #################### Phase 1: Basic formatting #####################
 
-def fill_to_width(text):
-    result = ""
-    for line in text.splitlines():
-        result += textwrap.fill(line, width = WIDTH) + "\n"
-    return result.strip()
-
 def adjust_lines(text):
     text = text.replace("\0", "NUL")
     lines = text.splitlines()
@@ -38,6 +32,12 @@ def adjust_lines(text):
         return "\n".join(adjusted)
     else:
         return text
+
+def fill_to_width(text):
+    result = ""
+    for line in text.splitlines():
+        result += textwrap.fill(line, width = WIDTH) + "\n"
+    return result.strip()
 
 def phase1():
     """
@@ -96,6 +96,8 @@ def words_only(input_text):
         sorted([w for w in input_text.split()
                 if word_only.fullmatch(w)]))
 
+def no_match(input_text): return True
+
 # Chain of responsibility:
 strategies = [
     # Filter                               Retain result for rest of chain
@@ -107,31 +109,56 @@ strategies = [
     (unique_lines,                          False),
     (unique_words,                          False),
     (words_only,                            False),
+    (no_match,                              False),
 ]
 
 
-class ValidationResults(defaultdict): # Map of lists
+class Validator(defaultdict): # Map of lists
     def __init__(self):
         super().__init__(list)
 
-validation_results = ValidationResults()
+    def find_output_match(self, javafile, code_output, generated_output):
+        def write_comparison_file(strat_name):
+            with javafile.with_suffix("." + strat_name).open('w') as trace_file:
+                trace_file.write(str(code_output) + "\n\n")
+                trace_file.write("=== Actual ===\n\n")
+                trace_file.write(str(generated_output))
+        for strategy, retain in strategies:
+            filtered_code_output = strategy(code_output)
+            filtered_generated_output = strategy(generated_output)
+            if filtered_code_output == filtered_generated_output:
+                strat_name = strategy.__name__
+                self[strat_name].append(str(javafile))
+                if strat_name is "exact_match": return
+                write_comparison_file(strat_name)
+                return
+            if retain:
+                code_output = filtered_code_output
+                generated_output = filtered_generated_output
 
-def find_output_match(code_output, generated_output):
-    for strategy, retain in strategies:
-        filtered_code_output = strategy(code_output)
-        filtered_generated_output = strategy(generated_output)
-        if filtered_code_output == filtered_generated_output:
-            return strategy.__name__
-        if retain:
-            code_output = filtered_code_output
-            generated_output = filtered_generated_output
-    else:
-        return None
+    @staticmethod
+    def header(id, log):
+        if id is "exact_match": return
+        log.write("\n" + (" " + id + " ").center(45, "=") + "\n")
+
+    def display_results(self):
+        log = open("verified_output.txt", 'w')
+        for strategy, retain in strategies:
+            key = strategy.__name__
+            self.header(key, log)
+            if key is "exact_match":
+                for java in self[key]:
+                    print(java)
+            elif key in self:
+                for java in self[key]:
+                    log.write(java + "\n")
+        log.close()
 
 
 if __name__ == '__main__':
     phase1() # Generates '.p1' files
     find_output = re.compile(r"/\* (Output:.*)\*/", re.DOTALL)
+    validator = Validator()
     for outfile in Path(".").rglob("*.p1"):
         javafile = outfile.with_suffix(".java")
         if not javafile.exists():
@@ -141,34 +168,8 @@ if __name__ == '__main__':
         if "/* Output:" not in javatext:
             print(str(outfile) + " has no /* Output:")
             sys.exit(1)
-        embedded_output = find_output.search(javatext).group(0).strip()
-        new_output = outfile.read_text().strip()
-        success = find_output_match(embedded_output, new_output)
-        if success:
-            validation_results[success].append(str(javafile))
-        else:
-            with outfile.with_suffix(".nomatch").open('w') as nomatch:
-                nomatch.write(str(embedded_output) + "\n\n")
-                nomatch.write("=== Actual ===\n\n")
-                nomatch.write(str(new_output))
-
-    # Display results:
-    log = open("verified_output.txt", 'w')
-    def header(id):
-        if id is "exact_match": return
-        log.write("\n" + (" " + id + " ").center(45, "=") + "\n")
-
-    for strategy, retain in strategies:
-        key = strategy.__name__
-        header(key)
-        if key is "exact_match":
-            for java in validation_results[key]:
-                print(java)
-        elif key in validation_results:
-            for java in validation_results[key]:
-                log.write(java + "\n")
-    header("No Match")
-    for nomatch in Path(".").rglob("*.nomatch"):
-        log.write(str(nomatch) + "\n")
-    log.close()
+        validator.find_output_match(javafile,
+            find_output.search(javatext).group(0).strip(),
+            outfile.read_text().strip())
+    validator.display_results()
     os.system("more verified_output.txt")
