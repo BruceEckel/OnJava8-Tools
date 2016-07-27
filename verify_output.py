@@ -1,9 +1,7 @@
 #! py -3
 # Requires Python 3.5
 # Validates output from executable Java programs in "On Java 8."
-# If direct comparison of actual output with output stored in Java file fails,
 # Use chain of responsibility to successively try strategies until one matches
-# or all fail
 from pathlib import Path
 import textwrap
 import re
@@ -60,16 +58,17 @@ def phase1():
 
 ########### Chain of Responsibility Match Finder #######################
 
+def exact_match(text): return text
+
 memlocation = re.compile("@[0-9a-z]{5,7}")
+
+def ignore_memory_addresses(text):
+    return memlocation.sub("", text)
+
 datestamp1 = re.compile(
     "(?:[MTWFS][a-z]{2} ){0,1}[JFMASOND][a-z]{2} \d{1,2} \d{2}:\d{2}:\d{2} [A-Z]{3} \d{4}")
 datestamp2 = re.compile(
     "[JFMASOND][a-z]{2} \d{1,2}, \d{4} \d{1,2}:\d{1,2}:\d{1,2} (:?AM|PM)")
-
-def exact_match(text): return text
-
-def ignore_memory_addresses(text):
-    return memlocation.sub("", text)
 
 def ignore_dates(text):
     for pat in [ datestamp1, datestamp2 ]:
