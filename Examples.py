@@ -28,7 +28,8 @@ gradle_files = Path(sys.path[0]).parent / "OnJava-Examples"
 # tools_to_copy = [ rootPath / "tools" / f for f in [
 tools_to_copy = [ Path(sys.path[0]) / f for f in [
     "verify_output.py",
-    "update_extracted_example_output.py",
+    "update_extracted_example_output.py", # For Development
+    "check.bat", # For development
 ]]
 
 maindef = re.compile("public\s+static\s+void\s+main")
