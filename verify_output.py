@@ -106,8 +106,8 @@ strategies = [
     (exact_match,                           False),
     (ignore_dates,                          True ),
     (ignore_memory_addresses,               True ),
-    (ignore_digits,                         False),
     (sort_lines,                            False),
+    (ignore_digits,                         False),
     (sort_words,                            False),
     (unique_lines,                          False),
     (unique_words,                          False),
@@ -123,6 +123,10 @@ class Validator(defaultdict): # Map of lists
         super().__init__(list)
         if Validator.compare_output.exists():
             Validator.compare_output.unlink()
+        for strategy, retain in strategies:
+            strat_batch = Path(strategy.__name__ + ".bat")
+            if strat_batch.exists():
+                strat_batch.unlink()
 
     def find_output_match(self, javafile, embedded_output, generated_output):
         for strategy, retain in strategies:
@@ -133,6 +137,8 @@ class Validator(defaultdict): # Map of lists
                 self[strat_name].append(str(javafile))
                 if strat_name is "exact_match": return
                 tfile = javafile.with_suffix("." + strat_name)
+                with Path(strat_name + ".bat").open('a') as strat_batch:
+                    strat_batch.write("subl " + str(tfile) + "\n")
                 with Validator.compare_output.open('a') as batch:
                     batch.write("subl " + str(tfile) + "\n")
                 with tfile.open('w') as trace_file:
