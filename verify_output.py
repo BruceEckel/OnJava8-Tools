@@ -68,8 +68,11 @@ datestamp2 = re.compile(
 
 def exact_match(text): return text
 
-def ignore_memory_addresses_and_dates(text):
-    for pat in [ memlocation, datestamp1, datestamp2 ]:
+def ignore_memory_addresses(text):
+    return memlocation.sub("", text)
+
+def ignore_dates(text):
+    for pat in [ datestamp1, datestamp2 ]:
         text = pat.sub("", text)
     return text
 
@@ -102,7 +105,8 @@ def no_match(input_text): return True
 strategies = [
     # Filter                               Retain result for rest of chain
     (exact_match,                           False),
-    (ignore_memory_addresses_and_dates,     True ),
+    (ignore_dates,                          True ),
+    (ignore_memory_addresses,               True ),
     (ignore_digits,                         False),
     (sort_lines,                            False),
     (sort_words,                            False),
@@ -114,42 +118,42 @@ strategies = [
 
 
 class Validator(defaultdict): # Map of lists
+    compare_output = Path(".") / "compare_output.bat"
+
     def __init__(self):
         super().__init__(list)
+        if Validator.compare_output.exists():
+            Validator.compare_output.unlink()
 
-    def find_output_match(self, javafile, code_output, generated_output):
-        def write_comparison_file(strat_name):
-            with javafile.with_suffix("." + strat_name).open('w') as trace_file:
-                trace_file.write(str(code_output) + "\n\n")
-                trace_file.write("=== Actual ===\n\n")
-                trace_file.write(str(generated_output))
+    def find_output_match(self, javafile, embedded_output, generated_output):
         for strategy, retain in strategies:
-            filtered_code_output = strategy(code_output)
+            filtered_embedded_output = strategy(embedded_output)
             filtered_generated_output = strategy(generated_output)
-            if filtered_code_output == filtered_generated_output:
+            if filtered_embedded_output == filtered_generated_output:
                 strat_name = strategy.__name__
                 self[strat_name].append(str(javafile))
                 if strat_name is "exact_match": return
-                write_comparison_file(strat_name)
+                tfile = javafile.with_suffix("." + strat_name)
+                with Validator.compare_output.open('a') as batch:
+                    batch.write("subl " + str(tfile) + "\n")
+                with tfile.open('w') as trace_file:
+                    trace_file.write(str(embedded_output) + "\n\n")
+                    trace_file.write("=== Actual ===\n\n")
+                    trace_file.write(str(generated_output))
                 return
             if retain:
-                code_output = filtered_code_output
+                embedded_output = filtered_embedded_output
                 generated_output = filtered_generated_output
-
-    @staticmethod
-    def header(id, log):
-        if id is "exact_match": return
-        log.write("\n" + (" " + id + " ").center(45, "=") + "\n")
 
     def display_results(self):
         log = open("verified_output.txt", 'w')
         for strategy, retain in strategies:
             key = strategy.__name__
-            self.header(key, log)
             if key is "exact_match":
                 for java in self[key]:
                     print(java)
             elif key in self:
+                log.write("\n" + (" " + key + " ").center(45, "=") + "\n")
                 for java in self[key]:
                     log.write(java + "\n")
         log.close()
