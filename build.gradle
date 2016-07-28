@@ -1,0 +1,194 @@
+import org.apache.tools.ant.util.TeeOutputStream
+// TODO: test for tags that span multiple lines
+boolean debug = false
+
+class Tags {
+    Boolean hasMainMethod = false
+    Boolean compileTimeError = false
+    Boolean throwsException = false
+    Boolean errorOutputExpected = false
+    Boolean validateByHand = false
+    Boolean ignoreOutput = false // This tag isn't used in the build...
+    String fileRoot
+    String mainClass
+    String javaCmd = null
+    List<String> args = []
+    List<String> jVMArgs = []
+    String exec = null
+    String runFirst = null
+    String outputLine = null
+    private List<String> lines
+    private String block
+    def Tags(List<String> lines) {
+        this.lines = lines
+        block = lines.join('')
+        hasMainMethod = block.contains('main(String[] args)')
+        fileRoot = lines[0].split("/")[-1] - ".java"
+        mainClass = fileRoot
+        javaCmd = extract('java')
+        if(javaCmd) {
+            def pieces = javaCmd.split()
+            mainClass = pieces[0]
+            if(pieces.size() > 1)
+                for(p in pieces[1..-1])
+                    if(p.startsWith("-"))
+                        jVMArgs << p
+                    else
+                        args << p
+        }
+        compileTimeError = hasTag('CompileTimeError')
+        throwsException = hasTag('ThrowsException')
+        errorOutputExpected = hasTag('ErrorOutputExpected')
+        validateByHand = hasTag('ValidateByHand')
+        ignoreOutput = hasTag('IgnoreOutput')
+        exec = extract('Exec:')
+        runFirst = extract('RunFirst:')
+        lines.each {
+            if(it =~ /\\/* Output:/) {
+                outputLine = it.trim()
+            }
+        }
+    }
+    private def hasTag(String marker) {
+        return block.contains("// {" + marker + "}")
+    }
+    private def extract(String marker) {
+        if(!block.contains("// {" + marker))
+            return null
+        def re = "\\/\\/ \\{" + marker + /[^}]+}/
+        def tagline = block =~ re
+        if(tagline.getCount()) {
+            def rtrim = tagline[0].reverse().dropWhile{ it != '}'}.reverse()[0..-2]
+            def ltrim = rtrim - ("// {" + marker)
+            ltrim = ltrim.replaceAll("//", " ")
+            return ltrim.trim()
+        } else {
+            println "Searching for: " + re
+            println block
+            System.exit(1)
+        }
+    }
+    public boolean hasTags() {
+        return compileTimeError ||
+        throwsException ||
+        errorOutputExpected ||
+        validateByHand ||
+        ignoreOutput ||
+        javaCmd ||
+        args ||
+        jVMArgs ||
+        exec ||
+        runFirst
+    }
+    public String toString() {
+        String result = ""
+        for(ln in lines)
+            if(ln.startsWith("//") || ln.startsWith("package "))
+                result += ln + "\n"
+            else
+                break
+        """
+        hasMainMethod
+        compileTimeError
+        throwsException
+        errorOutputExpected
+        validateByHand
+        ignoreOutput
+        fileRoot
+        mainClass
+        javaCmd
+        args
+        jVMArgs
+        exec
+        runFirst
+        """.split().each { str ->
+            if(this[str])
+                result += str + ": " + this[str] + "\n"
+        }
+        result
+    }
+}
+
+
+subprojects {
+    apply plugin: 'java'
+
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    sourceSets {
+        main {
+            java {
+                srcDir projectDir
+            }
+        }
+    }
+
+    List tasks = []
+
+    projectDir.eachFileRecurse {
+        if (it.name.endsWith('.java')) {
+
+            Tags tags = new Tags(it.readLines())
+            if(debug && tags.hasTags()) println tags
+
+            // Add tasks for java sources with main methods
+            if ((tags.hasMainMethod || tags.javaCmd) && (!tags.compileTimeError)) {
+
+                if (!tags.validateByHand) {
+                    // Only add tasks that we know we can run successfully to the task list
+                    tasks.add(tags.fileRoot)
+                }
+
+                String basePath = it.absolutePath.replaceAll('\\.java', '')
+                File outFile = new File(basePath + '.out')
+                File errFile = new File(basePath + '.err')
+
+                task "$tags.fileRoot"(type: JavaExec, dependsOn: tags.runFirst) {
+                    main = tags.mainClass
+                    classpath = sourceSets.main.runtimeClasspath
+                    args = tags.args
+                    jvmArgs = tags.jVMArgs
+                    ignoreExitValue = tags.validateByHand || tags.throwsException
+                    doFirst {
+                        if(outFile.exists())
+                            outFile.delete()
+                        if(tags.outputLine)
+                            outFile << tags.outputLine + "\n"
+
+                        standardOutput = new TeeOutputStream(new FileOutputStream(outFile, true), System.out)
+                        errorOutput = new TeeOutputStream(new FileOutputStream(errFile), System.err)
+                    }
+                    doLast {
+                        if(outFile.size() == 0)
+                            outFile.delete()
+                        else if(!outFile.text.contains("/* Output:"))
+                            outFile.delete()
+                        if(errFile.size() == 0) errFile.delete()
+                    }
+                }
+            }
+            // Exclude java sources that will not compile
+            if (tags.compileTimeError) {
+                sourceSets.main.java.excludes.add(it.name)
+            }
+        }
+    }
+    task run(dependsOn: tasks)
+}
+
+configure(subprojects - project(':onjava')) {
+    dependencies {
+        compile project(':onjava')
+    }
+}
+
+task verify(type:Exec) {
+    println("execute 'gradlew run' first")
+    commandLine 'python', 'verify_output.py'
+}
