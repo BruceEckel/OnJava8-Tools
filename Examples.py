@@ -30,6 +30,7 @@ tools_to_copy = [ Path(sys.path[0]) / f for f in [
     "verify_output.py",
     "update_extracted_example_output.py", # For Development
     "check.bat", # For development
+    "gg.bat", # Short for gradlew
 ]]
 
 maindef = re.compile("public\s+static\s+void\s+main")
