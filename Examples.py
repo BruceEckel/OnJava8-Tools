@@ -78,7 +78,9 @@ def extractExamples():
 @CmdLine("g")
 def copyGradleFiles():
     print("Copying Gradle Files ...")
-    for gradle_path in list(gradle_files.rglob("*gradle*")) + list(gradle_files.rglob("*.yml")):
+    for gradle_path in list(gradle_files.rglob("*gradle*")) + \
+                       list(gradle_files.rglob("*.yml")) + \
+                       list(gradle_files.rglob("*.md")):
         dest = example_path / gradle_path.relative_to(gradle_files)
         if(gradle_path.is_file()):
             if(not dest.parent.exists()):
