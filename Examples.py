@@ -55,14 +55,16 @@ def extractExamples():
         sys.exit()
 
     slugline = re.compile("^(//|#) .+?\.[a-z]+$", re.MULTILINE)
+    xmlslug  = re.compile("^<!-- .+?\.[a-z]+ +-->$", re.MULTILINE)
 
     for sourceText in markdown_path.glob("*.md"):
         debug("--- {} ---".format(sourceText.name))
         with sourceText.open("rb") as chapter:
             text = chapter.read().decode("utf-8", "ignore")
-            for listing in re.findall("```(.*?)\n(.*?)\n```", text, re.DOTALL):
-                title = listing[1].splitlines()[0]
-                if slugline.match(title):
+            for group in re.findall("```(.*?)\n(.*?)\n```", text, re.DOTALL):
+                listing = group[1].splitlines()
+                title = listing[0]
+                if slugline.match(title) or xmlslug.match(title):
                     debug(title)
                     fpath = title.split()[1].strip()
                     target = example_path / fpath
@@ -70,9 +72,11 @@ def extractExamples():
                     if not target.parent.exists():
                         target.parent.mkdir(parents=True)
                     with target.open("w", newline='') as codeListing:
-                        codeListing.write(listing[1].strip())
-                        codeListing.write("\n")
-                        debug("\n".join(listing[1].splitlines()))
+                        debug(group[1])
+                        if slugline.match(title):
+                            codeListing.write(group[1].strip() + "\n")
+                        elif xmlslug.match(title): # Drop the first line
+                            codeListing.write("\n".join(listing[1:]))
 
 
 @CmdLine("g")
