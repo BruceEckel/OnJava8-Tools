@@ -1,3 +1,4 @@
+%echo off
 if %COMPUTERNAME% == TEENYVERSE (
 cd C:\Users\bruce\Documents\Git\OnJava-Tools
 git pull
