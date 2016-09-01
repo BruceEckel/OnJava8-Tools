@@ -83,6 +83,7 @@ def extractExamples():
 def copyGradleFiles():
     print("Copying Gradle Files ...")
     for gradle_path in list(gradle_files.rglob("*gradle*")) + \
+                       list(gradle_files.rglob("*.xml")) + \
                        list(gradle_files.rglob("*.yml")) + \
                        list(gradle_files.rglob("*.md")):
         dest = example_path / gradle_path.relative_to(gradle_files)
