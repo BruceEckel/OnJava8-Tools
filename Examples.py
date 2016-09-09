@@ -23,9 +23,22 @@ rootPath = Path(sys.path[0]).parent / "on-java"
 markdown_path = rootPath / "Markdown"
 example_path = rootPath / "ExtractedExamples"
 example_resources = Path(sys.path[0]) / "example-resources"
-gradle_files = Path(sys.path[0]).parent / "OnJava-Examples"
+repo_examples = Path(sys.path[0]).parent / "OnJava-Examples"
 
-# tools_to_copy = [ rootPath / "tools" / f for f in [
+
+@CmdLine("t")
+def copyTestFiles():
+    print("Copying Test Files ...")
+    for test_path in list(repo_examples.rglob("tests/*")):
+        dest = example_path / test_path.relative_to(repo_examples)
+        if(test_path.is_file()):
+            if(not dest.parent.exists()):
+                print("creating " + str(dest.parent))
+                os.makedirs(str(dest.parent))
+            print("copy " + str(test_path.relative_to(repo_examples.parent)) + " " + str(dest.relative_to(example_path)))
+            shutil.copy(str(test_path), str(dest))
+
+
 tools_to_copy = [ Path(sys.path[0]) / f for f in [
     "_verify_output.py",
     "update_extracted_example_output.py", # For Development
@@ -41,6 +54,7 @@ def extractExamples():
     if not example_path.exists():
         debug("creating {}".format(example_path))
         example_path.mkdir()
+    copyTestFiles()
     # for f in example_resources.iterdir():
     #     if f.is_dir():
     #         shutil.copytree(str(f), str(example_path / f.name))
@@ -82,16 +96,16 @@ def extractExamples():
 @CmdLine("g")
 def copyGradleFiles():
     print("Copying Gradle Files ...")
-    for gradle_path in list(gradle_files.rglob("*gradle*")) + \
-                       list(gradle_files.rglob("*.xml")) + \
-                       list(gradle_files.rglob("*.yml")) + \
-                       list(gradle_files.rglob("*.md")):
-        dest = example_path / gradle_path.relative_to(gradle_files)
+    for gradle_path in list(repo_examples.rglob("*gradle*")) + \
+                       list(repo_examples.rglob("*.xml")) + \
+                       list(repo_examples.rglob("*.yml")) + \
+                       list(repo_examples.rglob("*.md")):
+        dest = example_path / gradle_path.relative_to(repo_examples)
         if(gradle_path.is_file()):
             if(not dest.parent.exists()):
                 print("creating " + str(dest.parent))
                 os.makedirs(str(dest.parent))
-            print("copy " + str(gradle_path.relative_to(gradle_files)) + " " + str(dest.relative_to(example_path)))
+            print("copy " + str(gradle_path.relative_to(repo_examples.parent)) + " " + str(dest.relative_to(example_path)))
             shutil.copy(str(gradle_path), str(dest))
 
 
