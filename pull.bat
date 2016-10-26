@@ -9,3 +9,7 @@ cd %GIT_HOME%\OnJava-Examples
 git pull
 cd %GIT_HOME%\on-java
 git pull
+cd %GIT_HOME%\AtomicKotlin
+git pull
+cd %GIT_HOME%\BruceEckel.github.io
+git pull
