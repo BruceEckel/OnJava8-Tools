@@ -29,3 +29,5 @@ fonts = ebookResources / "fonts"
 cover = ebookResources / "cover.jpg"
 css = ebookResources / "onjava.css"
 metadata = ebookResources / "metadata.yaml"
+
+reformat_dir = rootPath / "Reformatted"
