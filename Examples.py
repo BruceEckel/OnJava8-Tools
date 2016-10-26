@@ -1,6 +1,6 @@
 #! py -3
 """
-Extract code example_path from On Java Markdown files.
+Extract code config.example_dir from On Java Markdown files.
 Configures for Gradle build by copying from OnJava-Examples.
 """
 TODO = """
@@ -17,25 +17,18 @@ import shutil
 import pprint
 import difflib
 from betools import CmdLine
-
-
-rootPath = Path(sys.path[0]).parent / "on-java"
-markdown_path = rootPath / "Markdown"
-example_path = rootPath / "ExtractedExamples"
-example_resources = Path(sys.path[0]) / "example-resources"
-repo_examples = Path(sys.path[0]).parent / "OnJava-Examples"
-
+import config
 
 @CmdLine("t")
 def copyTestFiles():
     print("Copying Test Files ...")
-    for test_path in list(repo_examples.rglob("tests/*")):
-        dest = example_path / test_path.relative_to(repo_examples)
+    for test_path in list(config.github_code_dir.rglob("tests/*")):
+        dest = config.example_dir / test_path.relative_to(config.github_code_dir)
         if(test_path.is_file()):
             if(not dest.parent.exists()):
                 print("creating " + str(dest.parent))
                 os.makedirs(str(dest.parent))
-            print("copy " + str(test_path.relative_to(repo_examples.parent)) + " " + str(dest.relative_to(example_path)))
+            print("copy " + str(test_path.relative_to(config.github_code_dir.parent)) + " " + str(dest.relative_to(config.example_dir)))
             shutil.copy(str(test_path), str(dest))
 
 
@@ -51,27 +44,22 @@ maindef = re.compile("public\s+static\s+void\s+main")
 @CmdLine("x")
 def extractExamples():
     print("Extracting examples ...")
-    if not example_path.exists():
-        debug("creating {}".format(example_path))
-        example_path.mkdir()
+    if not config.example_dir.exists():
+        debug("creating {}".format(config.example_dir))
+        config.example_dir.mkdir()
     copyTestFiles()
-    # for f in example_resources.iterdir():
-    #     if f.is_dir():
-    #         shutil.copytree(str(f), str(example_path / f.name))
-    #     if f.is_file():
-    #         shutil.copy(str(f), str(example_path))
 
     for f in tools_to_copy:
-        shutil.copy(str(f), str(example_path))
+        shutil.copy(str(f), str(config.example_dir))
 
-    if not markdown_path.exists():
-        print("Cannot find", markdown_path)
+    if not config.markdown_dir.exists():
+        print("Cannot find", config.markdown_dir)
         sys.exit()
 
     slugline = re.compile("^(//|#) .+?\.[a-z]+$", re.MULTILINE)
     xmlslug  = re.compile("^<!-- .+?\.[a-z]+ +-->$", re.MULTILINE)
 
-    for sourceText in markdown_path.glob("*.md"):
+    for sourceText in config.markdown_dir.glob("*.md"):
         debug("--- {} ---".format(sourceText.name))
         with sourceText.open("rb") as chapter:
             text = chapter.read().decode("utf-8", "ignore")
@@ -81,7 +69,7 @@ def extractExamples():
                 if slugline.match(title) or xmlslug.match(title):
                     debug(title)
                     fpath = title.split()[1].strip()
-                    target = example_path / fpath
+                    target = config.example_dir / fpath
                     debug("writing {}".format(target))
                     if not target.parent.exists():
                         target.parent.mkdir(parents=True)
@@ -96,16 +84,16 @@ def extractExamples():
 @CmdLine("g")
 def copyGradleFiles():
     print("Copying Gradle Files ...")
-    for gradle_path in list(repo_examples.rglob("*gradle*")) + \
-                       list(repo_examples.rglob("*.xml")) + \
-                       list(repo_examples.rglob("*.yml")) + \
-                       list(repo_examples.rglob("*.md")):
-        dest = example_path / gradle_path.relative_to(repo_examples)
+    for gradle_path in list(config.github_code_dir.rglob("*gradle*")) + \
+                       list(config.github_code_dir.rglob("*.xml")) + \
+                       list(config.github_code_dir.rglob("*.yml")) + \
+                       list(config.github_code_dir.rglob("*.md")):
+        dest = config.example_dir / gradle_path.relative_to(config.github_code_dir)
         if(gradle_path.is_file()):
             if(not dest.parent.exists()):
                 print("creating " + str(dest.parent))
                 os.makedirs(str(dest.parent))
-            print("copy " + str(gradle_path.relative_to(repo_examples.parent)) + " " + str(dest.relative_to(example_path)))
+            print("copy " + str(gradle_path.relative_to(config.github_code_dir.parent)) + " " + str(dest.relative_to(config.example_dir)))
             shutil.copy(str(gradle_path), str(dest))
 
 
@@ -114,8 +102,8 @@ def clean():
     "Remove ExtractedExamples directory"
     print("Cleaning ...")
     try:
-        if example_path.exists():
-            shutil.rmtree(str(example_path))
+        if config.example_dir.exists():
+            shutil.rmtree(str(config.example_dir))
     except:
         print("Old path removal failed")
         raise RuntimeError()
@@ -132,11 +120,11 @@ def extractAndCopyBuildFiles():
     clean()
     extractExamples()
     copyGradleFiles()
-    os.chdir(str(example_path))
+    os.chdir(str(config.example_dir))
     with open("go.bat", 'w') as run:
         run.write(go_bat)
 
-    # os.chdir(str(example_path))
+    # os.chdir(str(config.example_dir))
     # with open("run.bat", 'w') as run:
     #     run.write(r"python ..\tools\Validate.py -p" + "\n")
     #     run.write(r"powershell .\runall.ps1" + "\n")
