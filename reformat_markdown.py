@@ -36,6 +36,7 @@ class ReformatDocument:
         self.n = 0
 
     def at_least_one(self, offset=0):
+        "How to determine a blank line vs out of lines?"
         index = self.n + offset
         if index >= len(self.lines):
             return False
@@ -45,6 +46,9 @@ class ReformatDocument:
 
     def at_least_two(self):
         return at_least_one() and at_least_one(1)
+
+    def blank_line(self):
+        return not at_least_one()
 
     def absorb(self, num_of_lines):
         for i in range(num_of_lines):
@@ -83,6 +87,10 @@ class ReformatDocument:
 
     def skiptable(self):
         "skip a markdown table"
+        if self.blank_line(): # followed by
+            if at_least_one(1):
+                if self.lines[self.n + 1].startswith("+-"):
+
 
     def start(self):
         while self.n < len(self.lines):
