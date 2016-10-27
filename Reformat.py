@@ -16,6 +16,7 @@ import pprint
 import difflib
 from betools import CmdLine
 import config
+from reformat_markdown import reformat_markdown
 
 @CmdLine("c")
 def clean():
@@ -55,6 +56,8 @@ def _formatOneFile(arg):
     shutil.copy(str(source_file), str(config.reformat_dir))
     target = config.reformat_dir / fname
     assert target.exists()
+    markdown = target.read_text()
+    target.write_text(reformat_markdown(markdown))
 
 
 @CmdLine("a")
