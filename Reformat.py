@@ -9,11 +9,7 @@ from logging import debug
 # logging.basicConfig(filename= __file__.split('.')[0] + ".log", level=logging.DEBUG)
 from pathlib import Path
 import sys
-import os
-import re
 import shutil
-import pprint
-import difflib
 from betools import CmdLine
 import config
 from reformat_markdown import reformat_markdown
