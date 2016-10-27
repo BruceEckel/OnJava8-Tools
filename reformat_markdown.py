@@ -51,8 +51,13 @@ class ReformatDocument:
             self.result.append(self.lines[self.n])
             self.n += 1
 
+    def skip_blank_line(self):
+        if not self.at_least_one():
+            self.absorb(1)
+            return True
+
     def skip_marked_line(self):
-        if self.at_least_one() and self.lines[n][0] in marker_chars:
+        if self.at_least_one() and self.lines[self.n][0] in marker_chars:
             self.absorb(1)
             return True
         return False
@@ -65,8 +70,15 @@ class ReformatDocument:
             return True
         return False
 
+    def skiplisting(self):
+        "skip anything marked as a code listing"
+
+    def skiptable(self):
+        "skip a markdown table"
+
     def start(self):
-        while n < len(self.lines):
+        while self.n < len(self.lines):
+            if self.skip_blank_line(): continue
             if self.skip_marked_line(): continue
             if self.skipsubhead(): continue
 
