@@ -1,7 +1,4 @@
 @echo off
-rem cd %~dp0
-pushd %~dp0
+cd %~dp0
 python %~dp0Examples.py %*
-popd
-rem cd %~dp0/../ExtractedExamples
-rem ant build
+cd %EXTRACTED_EXAMPLES%
