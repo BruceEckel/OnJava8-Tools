@@ -1,5 +1,17 @@
 """
-Reformats Pandoc-flavored Markdown, preserving hyphen cuddling
+Reformats Pandoc-flavored Markdown, preserving hyphen cuddling.
+
+Doesn't touch code listings.
+
+Has the option to fix other issues as well, such as the underlines for section
+headings and ensuring there are blank lines after various items.
+
+TODO: Create class that is just for managing lines in the doc, possibly called
+Index or Lines. Keeps track of where you are, whether a line is blank or has
+characters, whether the following line is blank or has characters, if you're at
+the end, if you have a next line. You explicitly tell it to move the index
+forward and at that point it calculates everything about where it is.
+
 """
 import textwrap
 import string
