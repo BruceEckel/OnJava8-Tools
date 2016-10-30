@@ -10,8 +10,6 @@ headings and ensuring there are blank lines after various items.
 import textwrap
 import string
 
-marker_chars = ">!#<"
-
 subhead_chars = string.ascii_letters + string.digits + "`"
 
 
@@ -34,7 +32,7 @@ class MarkdownLines:
 
     def blank(self): return len(self.line()) is 0
 
-    def nonblank(self): return len(self.line()) line not 0
+    def nonblank(self): return len(self.line()) is not 0
 
     def next_line(self):
         if self.eof():
@@ -71,7 +69,7 @@ class ReformatMarkdownDocument(MarkdownLines):
             break_on_hyphens = False,
         )
 
-    def reformat_document(self):
+    def reformat(self):
         # Chain-of-responsibility parser:
         while not self.eof():
             if self.skip_marked_line(): continue
@@ -83,15 +81,15 @@ class ReformatMarkdownDocument(MarkdownLines):
             raise ValueError("Illegal parser state")
 
     def skip_marked_line(self):
-        if self.at_least_one() and self[self.n][0] in marker_chars:
+        if self.line().startswith((">", "!", "#", "<")):
             self.transfer(1)
             return True
         return False
 
     def skipsubhead(self):
-        if not self.at_least_two():
-            return False
-        if self[self.n][0] in subhead_chars and self[self.n + 1][0] in "-=":
+        if (self.nonblank() and
+            not self.eof() and
+            self.next_line().startswith(("-", "="))):
             self.transfer(2)
             return True
         return False
@@ -108,7 +106,9 @@ class ReformatMarkdownDocument(MarkdownLines):
 
     def skiptable(self):
         "Skip a markdown table"
-        if self.blank_line() and self.next_line().startswith("+-"):
+        if (self.blank_line() and
+            not self.eof() and
+            self.next_line().startswith("+-")):
             self.transfer(2)
             while self.line().startswith(("|", "+")):
                 self.transfer(1)
@@ -138,7 +138,7 @@ class ReformatMarkdownDocument(MarkdownLines):
             text = text.replace("- ", "-")
         while text.find(" -") is not -1:
             text = text.replace(" -", "-")
-        self.result.append(self.formatter.fill(text))
+        self.result.append(self.formatter.fill(text) + "\n")
         return True
 
 

@@ -12,7 +12,7 @@ import sys
 import shutil
 from betools import CmdLine
 import config
-from reformat_markdown import reformat_markdown
+from reformat_markdown import ReformatMarkdownDocument
 
 @CmdLine("c")
 def clean():
@@ -50,10 +50,11 @@ def _formatOneFile(arg):
         sys.exit()
     print("formatting " + fname)
     shutil.copy(str(source_file), str(config.reformat_dir))
-    target = config.reformat_dir / fname
-    assert target.exists()
-    markdown = target.read_text()
-    target.write_text(reformat_markdown(markdown))
+    original = config.reformat_dir / fname
+    assert original.exists()
+    markdown = original.read_text()
+    target = config.reformat_dir / Path(arg).stem + ".rf"
+    target.write_text(ReformatMarkdownDocument(markdown).reformat())
 
 
 @CmdLine("a")
