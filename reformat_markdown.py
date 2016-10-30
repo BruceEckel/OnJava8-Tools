@@ -10,6 +10,9 @@ headings and ensuring there are blank lines after various items.
 import textwrap
 import string
 import pprint
+import logging
+from logging import debug
+logging.basicConfig(filename= __file__.split('.')[0] + ".log", level=logging.DEBUG)
 
 subhead_chars = string.ascii_letters + string.digits + "`"
 
@@ -80,24 +83,31 @@ class ReformatMarkdownDocument(MarkdownLines):
     def reformat(self):
         # Chain-of-responsibility parser:
         while not self.eof:
-            print(str(self.index) + ": " + str(self.line().encode("windows-1252")))
+            debug(str(self.index) + ": " + str(self.line().encode("windows-1252")))
+            debug("trying skip_marked_line")
             if self.skip_marked_line(): continue
+            debug("trying skipsubhead")
             if self.skipsubhead(): continue
+            debug("trying skiplisting")
             if self.skiplisting(): continue
+            debug("trying skiptable")
             if self.skiptable(): continue
+            debug("trying skip_blank_lines")
             if self.skip_blank_lines(): continue
+            debug("trying reformat_paragraph")
             if self.reformat_paragraph(): continue
             raise ValueError("Illegal parser state")
         #return "\n".join(self.result)
-        print(len(self.result))
-        for x in self.result:
-            print(x.encode("windows-1252"))
-            print()
-            print("+" * 80)
-            print()
+        # print(len(self.result))
+        # for x in self.result:
+        #     print(x.encode("windows-1252"))
+        #     print()
+        #     print("+" * 80)
+        #     print()
 
     def skip_marked_line(self):
         if self.line().startswith((">", "!", "#", "<")):
+            debug("skip_marked_line found " + self.line()[0])
             self.transfer(1)
             return True
         return False
@@ -106,13 +116,16 @@ class ReformatMarkdownDocument(MarkdownLines):
         if (self.nonblank() and
             not self.eof and
             self.next_line().startswith(("-", "="))):
-            self.transfer(2)
-            return True
+                debug("skipsubhead found " + self.next_line()[0])
+                self.transfer(2)
+                return True
+        debug("skipsubhead failed on " + self.next_line())
         return False
 
     def skiplisting(self):
         "Skip anything marked as a code listing"
         if self.line().startswith("```"):
+            debug("skiplisting found " + self.line())
             self.transfer(1)
             while not self.line().startswith("```"):
                 self.transfer(1)
@@ -125,6 +138,7 @@ class ReformatMarkdownDocument(MarkdownLines):
         if (self.blank() and
             not self.eof and
             self.next_line().startswith("+-")):
+            debug("skiptable found " + self.line())
             self.transfer(2)
             while self.line().startswith(("|", "+")):
                 self.transfer(1)
@@ -135,6 +149,7 @@ class ReformatMarkdownDocument(MarkdownLines):
         if self.nonblank():
             return False
         while self.blank():
+            debug("skip_blank_lines found blank " + self.line())
             self.transfer()
         return True
 
