@@ -25,17 +25,24 @@ class MarkdownLines:
             self.lines.append(line.rstrip())
         self.size = len(self.lines)
         self.eof = False
+        self.errcount = 0
 
-    def eof(self): return self.eof
+    #def eof(self): return self.eof
 
-    def line(self): return self.lines[self.index]
+    def line(self):
+        if self.index < self.size:
+            return self.lines[self.index]
+        else:
+            self.eof = True
+            self.errcount += 1
+            return "{-%d}" % self.errcount
 
     def blank(self): return len(self.line()) is 0
 
     def nonblank(self): return len(self.line()) is not 0
 
     def next_line(self):
-        if self.eof():
+        if self.eof:
             raise IndexError("next_line() out of range")
         return self.lines[self.index + 1]
 
@@ -71,7 +78,7 @@ class ReformatMarkdownDocument(MarkdownLines):
 
     def reformat(self):
         # Chain-of-responsibility parser:
-        while not self.eof():
+        while not self.eof:
             if self.skip_marked_line(): continue
             if self.skipsubhead(): continue
             if self.skiplisting(): continue
@@ -79,6 +86,7 @@ class ReformatMarkdownDocument(MarkdownLines):
             if self.skip_blank_lines(): continue
             if self.reformat_paragraph(): continue
             raise ValueError("Illegal parser state")
+        return "\n".join(self.result)
 
     def skip_marked_line(self):
         if self.line().startswith((">", "!", "#", "<")):
@@ -88,7 +96,7 @@ class ReformatMarkdownDocument(MarkdownLines):
 
     def skipsubhead(self):
         if (self.nonblank() and
-            not self.eof() and
+            not self.eof and
             self.next_line().startswith(("-", "="))):
             self.transfer(2)
             return True
@@ -106,8 +114,8 @@ class ReformatMarkdownDocument(MarkdownLines):
 
     def skiptable(self):
         "Skip a markdown table"
-        if (self.blank_line() and
-            not self.eof() and
+        if (self.blank() and
+            not self.eof and
             self.next_line().startswith("+-")):
             self.transfer(2)
             while self.line().startswith(("|", "+")):
@@ -127,7 +135,7 @@ class ReformatMarkdownDocument(MarkdownLines):
         if self.blank():
             return False
         text = ""
-        while self.nonblank() and not self.eof():
+        while self.nonblank() and not self.eof:
             text += self.line() + " "
             self.increment()
         # Remove double spaces:

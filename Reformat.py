@@ -52,9 +52,10 @@ def _formatOneFile(arg):
     shutil.copy(str(source_file), str(config.reformat_dir))
     original = config.reformat_dir / fname
     assert original.exists()
-    markdown = original.read_text()
-    target = config.reformat_dir / Path(arg).stem + ".rf"
-    target.write_text(ReformatMarkdownDocument(markdown).reformat())
+    markdown = original.read_text(encoding="utf-8")
+    target = config.reformat_dir / (Path(arg).stem + ".rf")
+    reformatted = ReformatMarkdownDocument(markdown).reformat()
+    target.write_text(reformatted, encoding="utf8")
 
 
 @CmdLine("a")
