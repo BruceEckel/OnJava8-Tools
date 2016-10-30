@@ -9,6 +9,7 @@ headings and ensuring there are blank lines after various items.
 """
 import textwrap
 import string
+import pprint
 
 subhead_chars = string.ascii_letters + string.digits + "`"
 
@@ -79,6 +80,7 @@ class ReformatMarkdownDocument(MarkdownLines):
     def reformat(self):
         # Chain-of-responsibility parser:
         while not self.eof:
+            print(str(self.index) + ": " + str(self.line().encode("windows-1252")))
             if self.skip_marked_line(): continue
             if self.skipsubhead(): continue
             if self.skiplisting(): continue
@@ -86,7 +88,13 @@ class ReformatMarkdownDocument(MarkdownLines):
             if self.skip_blank_lines(): continue
             if self.reformat_paragraph(): continue
             raise ValueError("Illegal parser state")
-        return "\n".join(self.result)
+        #return "\n".join(self.result)
+        print(len(self.result))
+        for x in self.result:
+            print(x.encode("windows-1252"))
+            print()
+            print("+" * 80)
+            print()
 
     def skip_marked_line(self):
         if self.line().startswith((">", "!", "#", "<")):
