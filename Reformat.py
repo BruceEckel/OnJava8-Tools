@@ -53,9 +53,9 @@ def _formatOneFile(arg):
     original = config.reformat_dir / fname
     assert original.exists()
     markdown = original.read_text(encoding="utf-8")
-    target = config.reformat_dir / (Path(arg).stem + ".rf")
-    reformatted = ReformatMarkdownDocument(markdown).reformat()
-    #target.write_text(reformatted, encoding="utf8")
+    target = config.reformat_dir / (Path(arg).stem + "-reformatted.md")
+    reformatted = ReformatMarkdownDocument(markdown, 55).reformat()
+    target.write_text(reformatted, encoding="utf8")
 
 
 @CmdLine("a")

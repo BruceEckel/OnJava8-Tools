@@ -38,8 +38,6 @@ class MarkdownLines:
         self.errcount = 0
         #debug(pprint.pformat(self.lines))
 
-    #def eof(self): return self.eof
-
     def line(self):
         if self.index < self.size:
             return self.lines[self.index]
@@ -90,21 +88,16 @@ class ReformatMarkdownDocument(MarkdownLines):
     def reformat(self):
         # Chain-of-responsibility parser:
         while not self.eof:
-            debug(str(self.index) + ": " + str(self.line().encode("windows-1252")))
-            debug("trying skip_marked_line")
+            debug("=" * 40)
+            debug(">>> Next line " + str(self.index) + ": " + str(self.line().encode("windows-1252")))
             if self.skip_marked_line(): continue
-            debug("trying skipsubhead")
             if self.skipsubhead(): continue
-            debug("trying skiplisting")
             if self.skiplisting(): continue
-            debug("trying skiptable")
             if self.skiptable(): continue
-            debug("trying skip_blank_lines")
             if self.skip_blank_lines(): continue
-            debug("trying reformat_paragraph")
             if self.reformat_paragraph(): continue
             raise ValueError("Illegal parser state")
-        #return "\n".join(self.result)
+        return "\n".join(self.result)
         # print(len(self.result))
         # for x in self.result:
         #     print(x.encode("windows-1252"))
@@ -113,27 +106,28 @@ class ReformatMarkdownDocument(MarkdownLines):
         #     print()
 
     def skip_marked_line(self):
-        debug("skip_marked_line trying " + self.line())
+        debug("skip_marked_line: [" + self.line() + "]")
         if self.line().startswith((">", "!", "#", "<")):
-            debug("found")
+            debug("skip_marked_line success")
             self.transfer(1)
             return True
+        debug("skip_marked_line fail")
         return False
 
     def skipsubhead(self):
-        debug("skipsubhead trying " + self.line())
+        debug("skipsubhead: [" + self.line() + "]")
         if (self.nonblank() and
             not self.eof and
             self.next_line().startswith(("-", "="))):
                 debug("skipsubhead found " + self.next_line()[0])
                 self.transfer(2)
                 return True
-        debug("skipsubhead failed on " + self.next_line())
+        debug("skipsubhead fail")
         return False
 
     def skiplisting(self):
         "Skip anything marked as a code listing"
-        debug("skiplisting trying " + self.line())
+        debug("skiplisting: [" + self.line() + "]")
         if self.line().startswith("```"):
             debug("skiplisting found " + self.line())
             self.transfer(1)
@@ -141,11 +135,12 @@ class ReformatMarkdownDocument(MarkdownLines):
                 self.transfer(1)
             self.transfer(1) # for closing ```
             return True
+        debug("skiplisting fail")
         return False
 
     def skiptable(self):
         "Skip a markdown table"
-        debug("skiptable trying " + self.line())
+        debug("skiptable: [" + self.line() + "]")
         if (self.blank() and
             not self.eof and
             self.next_line().startswith("+-")):
@@ -154,21 +149,24 @@ class ReformatMarkdownDocument(MarkdownLines):
             while self.line().startswith(("|", "+")):
                 self.transfer(1)
             return True
+        debug("skiptable fail")
         return False
 
     def skip_blank_lines(self):
-        debug("skip_blank_lines trying " + self.line())
+        debug("skip_blank_lines: [" + self.line() + "]")
         if self.nonblank():
+            debug("skip_blank_lines fail")
             return False
         while self.blank():
-            debug("skip_blank_lines found blank " + self.line())
+            debug("skip_blank_lines success")
             self.transfer()
         return True
 
     def reformat_paragraph(self):
         "Reformat a single normal prose markdown paragraph"
-        debug("reformat_paragraph trying " + self.line())
+        debug("reformat_paragraph: [" + self.line() + "]")
         if self.blank():
+            debug("reformat_paragraph fail")
             return False
         text = ""
         while self.nonblank() and not self.eof:
@@ -182,7 +180,8 @@ class ReformatMarkdownDocument(MarkdownLines):
             text = text.replace("- ", "-")
         while text.find(" -") is not -1:
             text = text.replace(" -", "-")
-        self.result.append(self.formatter.fill(text) + "\n")
+        self.result.append(self.formatter.fill(text))
+        debug("reformat_paragraph success")
         return True
 
 
