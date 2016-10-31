@@ -52,7 +52,7 @@ def _formatOneFile(arg):
     assert original.exists()
     markdown = original.read_text(encoding="utf-8")
     target = config.reformat_dir / (Path(arg).stem + "-reformatted.md")
-    reformatted = ReformatMarkdownDocument(markdown, WIDTH).reformat()
+    reformatted = ReformatMarkdownDocument(fname, markdown, WIDTH).reformat()
     target.write_text(reformatted, encoding="utf8")
 
 
