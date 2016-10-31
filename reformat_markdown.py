@@ -10,6 +10,7 @@ headings and ensuring there are blank lines after various items.
 import textwrap
 import string
 import pprint
+import sys
 import logging
 from logging import debug
 logging.basicConfig(filename= __file__.split('.')[0] + ".log", level=logging.DEBUG)
@@ -106,13 +107,15 @@ class ReformatMarkdownDocument(MarkdownLines):
         #     print()
 
     def skip_marked_line(self):
+        debug("skip_marked_line trying " + self.line())
         if self.line().startswith((">", "!", "#", "<")):
-            debug("skip_marked_line found " + self.line()[0])
+            debug("found")
             self.transfer(1)
             return True
         return False
 
     def skipsubhead(self):
+        debug("skipsubhead trying " + self.line())
         if (self.nonblank() and
             not self.eof and
             self.next_line().startswith(("-", "="))):
@@ -124,6 +127,7 @@ class ReformatMarkdownDocument(MarkdownLines):
 
     def skiplisting(self):
         "Skip anything marked as a code listing"
+        debug("skiplisting trying " + self.line())
         if self.line().startswith("```"):
             debug("skiplisting found " + self.line())
             self.transfer(1)
@@ -135,10 +139,11 @@ class ReformatMarkdownDocument(MarkdownLines):
 
     def skiptable(self):
         "Skip a markdown table"
+        debug("skiptable trying " + self.line())
         if (self.blank() and
             not self.eof and
             self.next_line().startswith("+-")):
-            debug("skiptable found " + self.line())
+            debug("skiptable found")
             self.transfer(2)
             while self.line().startswith(("|", "+")):
                 self.transfer(1)
@@ -146,6 +151,7 @@ class ReformatMarkdownDocument(MarkdownLines):
         return False
 
     def skip_blank_lines(self):
+        debug("skip_blank_lines trying " + self.line())
         if self.nonblank():
             return False
         while self.blank():
@@ -155,6 +161,7 @@ class ReformatMarkdownDocument(MarkdownLines):
 
     def reformat_paragraph(self):
         "Reformat a single normal prose markdown paragraph"
+        debug("reformat_paragraph trying " + self.line())
         if self.blank():
             return False
         text = ""
