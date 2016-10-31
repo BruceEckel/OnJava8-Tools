@@ -7,13 +7,18 @@ Has the option to fix other issues as well, such as the underlines for section
 headings and ensuring there are blank lines after various items.
 
 """
+import config
 import textwrap
 import string
 import pprint
 import sys
 import logging
 from logging import debug
-logging.basicConfig(filename= __file__.split('.')[0] + ".log", level=logging.DEBUG)
+logfile = __file__.split('.')[0] + ".log"
+logpath = config.tools_dir / logfile
+if (logpath).exists():
+    logpath.unlink()
+logging.basicConfig(filename= logfile, level=logging.DEBUG)
 
 subhead_chars = string.ascii_letters + string.digits + "`"
 
@@ -26,11 +31,12 @@ class MarkdownLines:
         self.index = 0
         self.lines = []
         self.result = []
-        for line in doc_text.split():
+        for line in doc_text.splitlines():
             self.lines.append(line.rstrip())
         self.size = len(self.lines)
         self.eof = False
         self.errcount = 0
+        #debug(pprint.pformat(self.lines))
 
     #def eof(self): return self.eof
 
