@@ -4,15 +4,14 @@ Reformat Markdown files to preserve non-space following dashes.
 """
 TODO = """
 """
-import logging
-from logging import debug
-# logging.basicConfig(filename= __file__.split('.')[0] + ".log", level=logging.DEBUG)
 from pathlib import Path
 import sys
 import shutil
 from betools import CmdLine
 import config
 from reformat_markdown import ReformatMarkdownDocument
+
+WIDTH = 70
 
 @CmdLine("c")
 def clean():
@@ -23,15 +22,14 @@ def clean():
             shutil.rmtree(str(config.reformat_dir))
     except:
         print("Old path removal failed")
-        raise RuntimeError()
+        sys.exit(1)
 
 
-@CmdLine("m")
-def make_reformatted_directory():
+@CmdLine("d")
+def create_reformatted_directory():
     "Create 'Reformatted' directory"
     if not config.reformat_dir.exists():
-        print("Creating 'Reformatted' directory")
-        debug("creating {}".format(config.reformat_dir))
+        print("creating {}".format(config.reformat_dir))
         config.reformat_dir.mkdir()
 
 
@@ -42,19 +40,19 @@ def formatOneFile():
 
 
 def _formatOneFile(arg):
-    make_reformatted_directory()
+    create_reformatted_directory()
     fname = Path(arg).name
     source_file = config.markdown_dir / fname
     if not source_file.exists():
         print(str(fname) + " does not exist in " + str(config.markdown_dir))
-        sys.exit()
+        sys.exit(1)
     print("formatting " + fname)
     shutil.copy(str(source_file), str(config.reformat_dir))
     original = config.reformat_dir / fname
     assert original.exists()
     markdown = original.read_text(encoding="utf-8")
     target = config.reformat_dir / (Path(arg).stem + "-reformatted.md")
-    reformatted = ReformatMarkdownDocument(markdown, 55).reformat()
+    reformatted = ReformatMarkdownDocument(markdown, WIDTH).reformat()
     target.write_text(reformatted, encoding="utf8")
 
 
