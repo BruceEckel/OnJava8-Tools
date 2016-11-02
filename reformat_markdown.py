@@ -6,6 +6,7 @@ Doesn't touch code listings.
 Has the option to fix other issues as well, such as the underlines for section
 headings and ensuring there are blank lines after various items.
 
+        print(x.encode("windows-1252"))
 """
 import config
 import textwrap
@@ -22,6 +23,7 @@ logging.basicConfig(filename= logfile, level=logging.DEBUG)
 
 subhead_chars = string.ascii_letters + string.digits + "`"
 
+END = "æ" # End sentinel: A character unused in the document
 
 class MarkdownLines:
     """
@@ -31,43 +33,42 @@ class MarkdownLines:
         self.index = 0
         self.lines = []
         self.result = []
-        for line in doc_text.splitlines():
+        for line in doc_text.strip().splitlines():
             self.lines.append(line.rstrip())
         self.size = len(self.lines)
-        self.eof = False
-        self.errcount = 0
-        #debug(pprint.pformat(self.lines))
+        self.end = False
+
+    def not_eof(self):
+        if self.index >= self.size:
+            self.end = True
+        return not self.end
 
     def line(self):
-        if self.index < self.size:
+        if self.not_eof():
             return self.lines[self.index]
+        return END
+
+    def next_line(self):
+        if self.index + 1 < self.size:
+            return self.lines[self.index + 1]
         else:
-            self.eof = True
-            self.errcount += 1
-            return "{-%d}" % self.errcount
+            return END
+
+    def increment(self):
+        if self.index + 1 < self.size:
+            self.index += 1
+        else:
+            self.end = True
 
     def blank(self): return len(self.line()) is 0
 
     def nonblank(self): return len(self.line()) is not 0
 
-    def next_line(self):
-        if self.eof:
-            raise IndexError("next_line() out of range")
-        return self.lines[self.index + 1]
-
     def next_line_blank(self): return len(self.next_line()) is 0
 
-    def next_line_nonblank(self): return len(self.next_line()) is not 0
-
-    def increment(self):
-        if self.index < self.size:
-            self.index += 1
-        if self.index >= self.size:
-            self.eof = True
-
     def transfer(self, count = 1):
-        for i in range(count):
-            if not self.eof:
+        for _ in range(count):
+            if self.not_eof():
                 self.result.append(self.line())
                 self.increment()
 
@@ -88,7 +89,7 @@ class ReformatMarkdownDocument(MarkdownLines):
 
     def reformat(self):
         # Chain-of-responsibility parser:
-        while not self.eof:
+        while self.not_eof():
             debug("=" * 40)
             debug("[" + self.doc_name + "] line " +
                 str(self.index) + ": " +
@@ -97,32 +98,25 @@ class ReformatMarkdownDocument(MarkdownLines):
             if self.skipsubhead(): continue
             if self.skiplisting(): continue
             if self.skiptable(): continue
+            if self.skip_indented_block(): continue
             if self.skip_blank_lines(): continue
             if self.reformat_paragraph(): continue
             raise ValueError("Illegal parser state")
         return "\n".join(self.result)
-        # print(len(self.result))
-        # for x in self.result:
-        #     print(x.encode("windows-1252"))
-        #     print()
-        #     print("+" * 80)
-        #     print()
 
     def skip_marked_line(self):
         debug("skip_marked_line")
         if self.line().startswith((">", "!", "#", "<")):
+            self.transfer()
             debug("--> success")
-            self.transfer(1)
             return True
         debug("--> fail")
         return False
 
     def skipsubhead(self):
         debug("skipsubhead")
-        if (self.nonblank() and
-            not self.eof and
-            self.next_line().startswith(("-", "="))):
-                debug("skipsubhead found " + self.next_line()[0])
+        if (self.nonblank() and self.next_line().startswith(("-", "="))):
+                debug("--> success: " + self.next_line()[0])
                 self.transfer(2)
                 return True
         debug("--> fail")
@@ -132,11 +126,11 @@ class ReformatMarkdownDocument(MarkdownLines):
         "Skip anything marked as a code listing"
         debug("skiplisting")
         if self.line().startswith("```"):
+            self.transfer()
+            while not self.line().startswith("```") and self.not_eof():
+                self.transfer()
+            self.transfer() # for closing ```
             debug("--> success")
-            self.transfer(1)
-            while not self.line().startswith("```"):
-                self.transfer(1)
-            self.transfer(1) # for closing ```
             return True
         debug("--> fail")
         return False
@@ -144,13 +138,27 @@ class ReformatMarkdownDocument(MarkdownLines):
     def skiptable(self):
         "Skip a markdown table"
         debug("skiptable")
-        if (self.blank() and
-            not self.eof and
-            self.next_line().startswith("+-")):
+        if self.line().startswith("+-"):
+            self.transfer()
+            while self.line().startswith(("|", "+")) and self.not_eof():
+                self.transfer()
             debug("--> success")
-            self.transfer(2)
-            while self.line().startswith(("|", "+")):
-                self.transfer(1)
+            return True
+        debug("--> fail")
+        return False
+
+    def skip_indented_block(self):
+        debug("skip_indented_block")
+        if self.line().startswith(
+            ("-", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
+            ) and self.next_line().startswith(" "):
+            debug("--> success:::")
+            debug("\t" + self.line())
+            debug("\t" + self.next_line())
+            self.transfer()
+            while self.line().startswith(" ") and self.not_eof():
+                debug("\t" + self.line())
+                self.transfer()
             return True
         debug("--> fail")
         return False
@@ -160,9 +168,9 @@ class ReformatMarkdownDocument(MarkdownLines):
         if self.nonblank():
             debug("--> fail")
             return False
-        while self.blank():
-            debug("--> success")
+        while self.blank() and self.not_eof():
             self.transfer()
+        debug("--> success")
         return True
 
     def reformat_paragraph(self):
@@ -172,7 +180,7 @@ class ReformatMarkdownDocument(MarkdownLines):
             debug("--> fail")
             return False
         text = ""
-        while self.nonblank() and not self.eof:
+        while self.nonblank() and self.not_eof():
             text += self.line() + " "
             self.increment()
         # Remove double spaces:
@@ -186,29 +194,3 @@ class ReformatMarkdownDocument(MarkdownLines):
         self.result.append(self.formatter.fill(text))
         debug("--> success")
         return True
-
-
-test = """
-Note the
----
-use of---
-`@Override`. Without
--this annotation, if-
-you didn't provide
--the exact method---
-name or
---- signature, the `abstract` --- mechanism will see that-
-you haven't implemented the `abstract`-method and - produce a compile-time
-error.
-Thus,
-you could
--effectively argue
--
- that---`@Override` is-redundant here.
-However, `@Override`---also gives-the reader-a signal - that this---method is
-overriden---I consider-that useful, and-so will---use `@Override` even-when the-
-compiler would---still inform-me of---mistakes.
-"""
-
-if __name__ == '__main__':
-    print(reformat_paragraph(test, width=50))

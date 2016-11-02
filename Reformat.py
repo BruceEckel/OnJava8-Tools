@@ -47,13 +47,13 @@ def _formatOneFile(arg):
         print(str(fname) + " does not exist in " + str(config.markdown_dir))
         sys.exit(1)
     print("formatting " + fname)
-    shutil.copy(str(source_file), str(config.reformat_dir))
-    original = config.reformat_dir / fname
-    assert original.exists()
-    markdown = original.read_text(encoding="utf-8")
-    target = config.reformat_dir / (Path(arg).stem + "-reformatted.md")
+    #shutil.copy(str(source_file), str(config.reformat_dir))
+    #original = config.reformat_dir / fname
+    #assert original.exists()
+    markdown = source_file.read_text(encoding="utf-8")
+    target = config.reformat_dir / fname # (Path(arg).stem + "-reformatted.md")
     reformatted = ReformatMarkdownDocument(fname, markdown, WIDTH).reformat()
-    target.write_text(reformatted, encoding="utf8")
+    target.write_text(reformatted + "\n", encoding="utf8")
 
 
 @CmdLine("a")
