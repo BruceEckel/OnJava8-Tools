@@ -11,7 +11,7 @@ from betools import CmdLine
 import config
 from reformat_markdown import ReformatMarkdownDocument
 
-WIDTH = 70
+WIDTH = 80
 
 @CmdLine("c")
 def clean():

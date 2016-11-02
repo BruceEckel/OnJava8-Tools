@@ -13,13 +13,14 @@ import textwrap
 import string
 import pprint
 import sys
-import logging
-from logging import debug
-logfile = __file__.split('.')[0] + ".log"
-logpath = config.tools_dir / logfile
-if (logpath).exists():
-    logpath.unlink()
-logging.basicConfig(filename= logfile, level=logging.DEBUG)
+# import logging
+# from logging import debug
+# logfile = __file__.split('.')[0] + ".log"
+# logpath = config.tools_dir / logfile
+# if (logpath).exists():
+#     logpath.unlink()
+# logging.basicConfig(filename= logfile, level=logging.DEBUG)
+def debug(x): pass
 
 subhead_chars = string.ascii_letters + string.digits + "`"
 
@@ -81,10 +82,17 @@ class ReformatMarkdownDocument(MarkdownLines):
     def __init__(self, doc_name, doc_text, width = 80):
         super().__init__(doc_text)
         self.doc_name = doc_name
-        self.formatter = textwrap.TextWrapper(
+        self.normal_formatter = textwrap.TextWrapper(
             width = width,
             break_long_words = False,
             break_on_hyphens = False,
+        )
+        self.indent_formatter = textwrap.TextWrapper(
+            width             = width,
+            break_long_words  = False,
+            break_on_hyphens  = False,
+            initial_indent    = "    ",
+            subsequent_indent = "    ",
         )
 
     def reformat(self):
@@ -98,7 +106,8 @@ class ReformatMarkdownDocument(MarkdownLines):
             if self.skipsubhead(): continue
             if self.skiplisting(): continue
             if self.skiptable(): continue
-            if self.skip_indented_block(): continue
+            if self.bulleted_block(): continue
+            if self.numbered_block(): continue
             if self.skip_blank_lines(): continue
             if self.reformat_paragraph(): continue
             raise ValueError("Illegal parser state")
@@ -147,18 +156,43 @@ class ReformatMarkdownDocument(MarkdownLines):
         debug("--> fail")
         return False
 
-    def skip_indented_block(self):
-        debug("skip_indented_block")
-        if self.line().startswith(
-            ("-", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
-            ) and self.next_line().startswith(" "):
+    def fill_paragraph(self, formatter):
+        text = ""
+        while self.nonblank() and self.not_eof():
+            text += self.line() + " "
+            self.increment()
+        # Remove double spaces:
+        while text.find("  ") is not -1:
+            text = text.replace("  ", " ")
+        # Remove spaces around hyphens:
+        while text.find("- ") is not -1:
+            text = text.replace("- ", "-")
+        while text.find(" -") is not -1:
+            text = text.replace(" -", "-")
+        return formatter.fill(text)
+
+    def bulleted_block(self):
+        debug("bulleted_block")
+        if self.line().startswith("-"):
+            formatted = self.fill_paragraph(self.indent_formatter)
+            formatted = formatted.replace("-", "", 1)
+            formatted = formatted.replace(" ", "-", 1)
+            self.result.append(formatted)
             debug("--> success:::")
-            debug("\t" + self.line())
-            debug("\t" + self.next_line())
-            self.transfer()
-            while self.line().startswith(" ") and self.not_eof():
-                debug("\t" + self.line())
-                self.transfer()
+            return True
+        debug("--> fail")
+        return False
+
+    def numbered_block(self):
+        debug("numbered_block")
+        if self.line().startswith(
+            ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")):
+            formatted = self.fill_paragraph(self.indent_formatter).lstrip()
+            num, par = formatted.split(".", 1)
+            graph = "%-4s" % (num + "." )
+            graph += par.lstrip()
+            self.result.append(graph)
+            debug("--> success:::")
             return True
         debug("--> fail")
         return False
@@ -191,6 +225,6 @@ class ReformatMarkdownDocument(MarkdownLines):
             text = text.replace("- ", "-")
         while text.find(" -") is not -1:
             text = text.replace(" -", "-")
-        self.result.append(self.formatter.fill(text))
+        self.result.append(self.normal_formatter.fill(text))
         debug("--> success")
         return True
