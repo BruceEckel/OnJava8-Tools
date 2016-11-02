@@ -13,14 +13,14 @@ import textwrap
 import string
 import pprint
 import sys
-# import logging
-# from logging import debug
+import logging
+from logging import debug
 # logfile = __file__.split('.')[0] + ".log"
-# logpath = config.tools_dir / logfile
+# logpath = config.reformat_dir / logfile
 # if (logpath).exists():
 #     logpath.unlink()
-# logging.basicConfig(filename= logfile, level=logging.DEBUG)
-def debug(x): pass
+logging.basicConfig(filename= __file__.split('.')[0] + ".log", filemode='w', level=logging.DEBUG)
+#def debug(x): pass
 
 subhead_chars = string.ascii_letters + string.digits + "`"
 
@@ -94,6 +94,12 @@ class ReformatMarkdownDocument(MarkdownLines):
             initial_indent    = "    ",
             subsequent_indent = "    ",
         )
+        # Skip header block:
+        if self.line() == "---":
+            while not self.line().startswith("...") and self.not_eof():
+                self.transfer()
+            self.transfer() # "..."
+
 
     def reformat(self):
         # Chain-of-responsibility parser:
