@@ -15,12 +15,8 @@ import pprint
 import sys
 import logging
 from logging import debug
-# logfile = __file__.split('.')[0] + ".log"
-# logpath = config.reformat_dir / logfile
-# if (logpath).exists():
-#     logpath.unlink()
 logging.basicConfig(filename= __file__.split('.')[0] + ".log", filemode='w', level=logging.DEBUG)
-#def debug(x): pass
+def debug(x): pass # Comment this to produce debug file
 
 subhead_chars = string.ascii_letters + string.digits + "`"
 
@@ -108,28 +104,33 @@ class ReformatMarkdownDocument(MarkdownLines):
             debug("[" + self.doc_name + "] line " +
                 str(self.index) + ": " +
                 str(self.line().encode("windows-1252")))
-            if self.skip_marked_line(): continue
-            if self.skipsubhead(): continue
-            if self.skiplisting(): continue
-            if self.skiptable(): continue
+            if self.special_line(): continue
+            if self.subhead(): continue
+            if self.listing(): continue
+            if self.table(): continue
             if self.bulleted_block(): continue
             if self.numbered_block(): continue
-            if self.skip_blank_lines(): continue
+            if self.blank_lines(): continue
             if self.reformat_paragraph(): continue
             raise ValueError("Illegal parser state")
         return "\n".join(self.result)
 
-    def skip_marked_line(self):
-        debug("skip_marked_line")
-        if self.line().startswith((">", "!", "#", "<")):
+    def special_line(self):
+        """
+        Don't touch lines that should be left alone. Note that because
+        every line is rstripped, a line that starts with a space is indented
+        text and should be passed through untouched.
+        """
+        debug("special_line")
+        if self.line().startswith((">", "!", "#", "<", " ")):
             self.transfer()
             debug("--> success")
             return True
         debug("--> fail")
         return False
 
-    def skipsubhead(self):
-        debug("skipsubhead")
+    def subhead(self):
+        debug("subhead")
         if (self.nonblank() and self.next_line().startswith(("-", "="))):
                 debug("--> success: " + self.next_line()[0])
                 self.transfer(2)
@@ -137,9 +138,9 @@ class ReformatMarkdownDocument(MarkdownLines):
         debug("--> fail")
         return False
 
-    def skiplisting(self):
+    def listing(self):
         "Skip anything marked as a code listing"
-        debug("skiplisting")
+        debug("listing")
         if self.line().startswith("```"):
             self.transfer()
             while not self.line().startswith("```") and self.not_eof():
@@ -150,9 +151,9 @@ class ReformatMarkdownDocument(MarkdownLines):
         debug("--> fail")
         return False
 
-    def skiptable(self):
+    def table(self):
         "Skip a markdown table"
-        debug("skiptable")
+        debug("table")
         if self.line().startswith("+-"):
             self.transfer()
             while self.line().startswith(("|", "+")) and self.not_eof():
@@ -181,8 +182,8 @@ class ReformatMarkdownDocument(MarkdownLines):
         debug("bulleted_block")
         if self.line().startswith("+ "):
             formatted = self.fill_paragraph(self.indent_formatter)
-            formatted = formatted.replace("+", "", 1)
-            formatted = formatted.replace(" ", "+", 1)
+            formatted = formatted.replace("+ ", "", 1)
+            formatted = formatted.replace("  ", "+ ", 1)
             self.result.append(formatted)
             debug("--> success:::")
             return True
@@ -203,8 +204,8 @@ class ReformatMarkdownDocument(MarkdownLines):
         debug("--> fail")
         return False
 
-    def skip_blank_lines(self):
-        debug("skip_blank_lines")
+    def blank_lines(self):
+        debug("blank_lines")
         if self.nonblank():
             debug("--> fail")
             return False
@@ -216,21 +217,9 @@ class ReformatMarkdownDocument(MarkdownLines):
     def reformat_paragraph(self):
         "Reformat a single normal prose markdown paragraph"
         debug("reformat_paragraph")
-        if self.blank():
+        if self.blank(): # Is this possible?
             debug("--> fail")
             return False
-        text = ""
-        while self.nonblank() and self.not_eof():
-            text += self.line() + " "
-            self.increment()
-        # Remove double spaces:
-        while text.find("  ") is not -1:
-            text = text.replace("  ", " ")
-        # Remove spaces around hyphens:
-        while text.find("- ") is not -1:
-            text = text.replace("- ", "-")
-        while text.find(" -") is not -1:
-            text = text.replace(" -", "-")
-        self.result.append(self.normal_formatter.fill(text))
+        self.result.append(self.fill_paragraph(self.normal_formatter))
         debug("--> success")
         return True
