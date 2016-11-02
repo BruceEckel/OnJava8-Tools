@@ -179,10 +179,10 @@ class ReformatMarkdownDocument(MarkdownLines):
 
     def bulleted_block(self):
         debug("bulleted_block")
-        if self.line().startswith("-"):
+        if self.line().startswith("+ "):
             formatted = self.fill_paragraph(self.indent_formatter)
-            formatted = formatted.replace("-", "", 1)
-            formatted = formatted.replace(" ", "-", 1)
+            formatted = formatted.replace("+", "", 1)
+            formatted = formatted.replace(" ", "+", 1)
             self.result.append(formatted)
             debug("--> success:::")
             return True
