@@ -8,6 +8,18 @@ headings and ensuring there are blank lines after various items.
 
         print(x.encode("windows-1252"))
 """
+
+# Very hacky:
+fixes = [
+    ("rm-r", "rm -r"),
+    ("and-1", "and -1"),
+    ("length-1", "length - 1"),
+    ("javap-c", "javap -c"),
+    ("flatMap(c->", "flatMap(c ->"),
+    ("n-> n", "n -> n"),
+]
+
+
 import config
 import textwrap
 import string
@@ -115,6 +127,25 @@ class ReformatMarkdownDocument(MarkdownLines):
             raise ValueError("Illegal parser state")
         return "\n".join(self.result)
 
+    def fill_paragraph(self, formatter):
+        text = ""
+        while self.nonblank() and self.not_eof():
+            text += self.line() + " "
+            self.increment()
+        # Remove double spaces:
+        while text.find("  ") is not -1:
+            text = text.replace("  ", " ")
+        # Remove spaces around hyphens:
+        while text.find("- ") is not -1:
+            text = text.replace("- ", "-")
+        while text.find(" -") is not -1:
+            text = text.replace(" -", "-")
+        # Hack:
+        for fix in fixes:
+            while text.find(fix[0]) is not -1:
+                text = text.replace(fix[0], fix[1])
+        return formatter.fill(text)
+
     def special_line(self):
         """
         Don't touch lines that should be left alone. Note that because
@@ -162,21 +193,6 @@ class ReformatMarkdownDocument(MarkdownLines):
             return True
         debug("--> fail")
         return False
-
-    def fill_paragraph(self, formatter):
-        text = ""
-        while self.nonblank() and self.not_eof():
-            text += self.line() + " "
-            self.increment()
-        # Remove double spaces:
-        while text.find("  ") is not -1:
-            text = text.replace("  ", " ")
-        # Remove spaces around hyphens:
-        while text.find("- ") is not -1:
-            text = text.replace("- ", "-")
-        while text.find(" -") is not -1:
-            text = text.replace(" -", "-")
-        return formatter.fill(text)
 
     def bulleted_block(self):
         debug("bulleted_block")
