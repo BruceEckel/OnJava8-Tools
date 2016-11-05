@@ -8,7 +8,7 @@ incorporate exec_command into build.xml
 """
 import logging
 from logging import debug
-# logging.basicConfig(filename= __file__.split('.')[0] + ".log", level=logging.DEBUG)
+logging.basicConfig(filename= __file__.split('.')[0] + ".log", filemode='w', level=logging.DEBUG)
 from pathlib import Path
 import sys
 import os
@@ -26,9 +26,9 @@ def copyTestFiles():
         dest = config.example_dir / test_path.relative_to(config.github_code_dir)
         if(test_path.is_file()):
             if(not dest.parent.exists()):
-                print("creating " + str(dest.parent))
+                debug("creating " + str(dest.parent))
                 os.makedirs(str(dest.parent))
-            print("copy " + str(test_path.relative_to(config.github_code_dir.parent)) + " " + str(dest.relative_to(config.example_dir)))
+            debug("copy " + str(test_path.relative_to(config.github_code_dir.parent)) + " " + str(dest.relative_to(config.example_dir)))
             shutil.copy(str(test_path), str(dest))
 
 
@@ -87,14 +87,16 @@ def copyGradleFiles():
     for gradle_path in list(config.github_code_dir.rglob("*gradle*")) + \
                        list(config.github_code_dir.rglob("*.xml")) + \
                        list(config.github_code_dir.rglob("*.yml")) + \
-                       list(config.github_code_dir.rglob("*.md")):
+                       list(config.github_code_dir.rglob("*.md")) + \
+                       list((config.github_code_dir / "buildSrc").rglob("*")):
         dest = config.example_dir / gradle_path.relative_to(config.github_code_dir)
         if(gradle_path.is_file()):
             if(not dest.parent.exists()):
-                print("creating " + str(dest.parent))
+                debug("creating " + str(dest.parent))
                 os.makedirs(str(dest.parent))
-            print("copy " + str(gradle_path.relative_to(config.github_code_dir.parent)) + " " + str(dest.relative_to(config.example_dir)))
+            debug("copy " + str(gradle_path.relative_to(config.github_code_dir.parent)) + " " + str(dest.relative_to(config.example_dir)))
             shutil.copy(str(gradle_path), str(dest))
+
 
 
 @CmdLine("c")
@@ -116,19 +118,13 @@ rem find . -size 0 -type f
 
 @CmdLine('e')
 def extractAndCopyBuildFiles():
-    "Clean, then extract examples from Markdown, build ant files"
+    "Clean, then extract examples from Markdown, copy gradle files from OnJava-Examples"
     clean()
     extractExamples()
     copyGradleFiles()
     os.chdir(str(config.example_dir))
     with open("go.bat", 'w') as run:
         run.write(go_bat)
-
-    # os.chdir(str(config.example_dir))
-    # with open("run.bat", 'w') as run:
-    #     run.write(r"python ..\tools\Validate.py -p" + "\n")
-    #     run.write(r"powershell .\runall.ps1" + "\n")
-    #     run.write(r"python ..\tools\Validate.py -e" + "\n")
 
 
 if __name__ == '__main__':
