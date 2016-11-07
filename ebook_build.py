@@ -36,7 +36,7 @@ def copy(src):
 
 def populate_ebook_build_dir():
     shutil.copytree(
-        str(config.markdown_dir / "images"),
+        str(config.img_dir),
         str(config.build_dir / "images"))
 
     [copy(font) for font in config.fonts.glob("*")]

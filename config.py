@@ -10,11 +10,10 @@ tools_dir = Path(sys.path[0])
 rootPath = tools_dir.parent / "on-java"
 
 markdown_dir = rootPath / "Markdown"
-img_dir = markdown_dir / "images"
 
 example_dir = rootPath / "ExtractedExamples"
 
-github_code_dir = rootPath.parent / "OnJava-Examples"
+github_code_dir = rootPath.parent / "OnJava8-Examples"
 
 build_dir = rootPath / "ebook_build"
 html_dir = build_dir / "html"
@@ -25,6 +24,7 @@ combined_markdown_html = build_dir / "onjava-assembled-html.md"
 combined_markdown_pdf = build_dir / "onjava-assembled-pdf.md"
 
 ebookResources = rootPath / "resources"
+img_dir = ebookResources / "images"
 fonts = ebookResources / "fonts"
 cover = ebookResources / "cover.jpg"
 css = ebookResources / "onjava.css"
