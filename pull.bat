@@ -5,7 +5,7 @@ if "%GIT_HOME%"=="" (
 )
 cd %GIT_HOME%\OnJava-Tools
 git pull
-cd %GIT_HOME%\OnJava-Examples
+cd %GIT_HOME%\OnJava8-Examples
 git pull
 cd %GIT_HOME%\on-java
 git pull
