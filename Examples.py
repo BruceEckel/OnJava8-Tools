@@ -110,11 +110,11 @@ def clean():
         print("Old path removal failed")
         raise RuntimeError()
 
-go_bat = """\
-gradlew --parallel --daemon run > output.txt 2> errors.txt
-START /min "C:\Program Files\Windows Media Player\wmplayer.exe" %windir%\media\Alarm07.wav
-rem find . -size 0 -type f
-"""
+# go_bat = """\
+# gradlew --parallel --daemon run > output.txt 2> errors.txt
+# START /min "C:\Program Files\Windows Media Player\wmplayer.exe" %windir%\media\Alarm07.wav
+# rem find . -size 0 -type f
+# """
 
 @CmdLine('e')
 def extractAndCopyBuildFiles():
@@ -122,9 +122,9 @@ def extractAndCopyBuildFiles():
     clean()
     extractExamples()
     copyGradleFiles()
-    os.chdir(str(config.example_dir))
-    with open("go.bat", 'w') as run:
-        run.write(go_bat)
+    # os.chdir(str(config.example_dir))
+    # with open("go.bat", 'w') as run:
+    #     run.write(go_bat)
 
 
 if __name__ == '__main__':
