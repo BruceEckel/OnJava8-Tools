@@ -22,6 +22,7 @@ epub_dir = build_dir / "epub_files"
 combined_markdown = build_dir / "onjava-assembled.md"
 combined_markdown_html = build_dir / "onjava-assembled-html.md"
 combined_markdown_pdf = build_dir / "onjava-assembled-pdf.md"
+stripped_for_spelling = build_dir / "onjava-stripped-for-spelling.md"
 
 ebookResources = rootPath / "resources"
 img_dir = ebookResources / "images"
