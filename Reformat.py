@@ -10,10 +10,11 @@ import shutil
 from betools import CmdLine
 import config
 from reformat_markdown import ReformatMarkdownDocument
+from CheckReformatted import compare
 
 WIDTH = 80
 
-@CmdLine("c")
+# @CmdLine("c")
 def clean():
     "Remove 'Reformatted' directory"
     print("Cleaning ...")
@@ -25,7 +26,7 @@ def clean():
         sys.exit(1)
 
 
-@CmdLine("d")
+# @CmdLine("d")
 def create_reformatted_directory():
     "Create 'Reformatted' directory"
     if not config.reformat_dir.exists():
@@ -40,7 +41,7 @@ def formatOneFile():
 
 
 def _formatOneFile(arg):
-    create_reformatted_directory()
+    # create_reformatted_directory()
     fname = Path(arg).name
     source_file = config.markdown_dir / fname
     if not source_file.exists():
@@ -51,9 +52,12 @@ def _formatOneFile(arg):
     #original = config.reformat_dir / fname
     #assert original.exists()
     markdown = source_file.read_text(encoding="utf-8")
-    target = config.reformat_dir / fname # (Path(arg).stem + "-reformatted.md")
+    # target = config.reformat_dir / fname # (Path(arg).stem + "-reformatted.md")
+    target = config.markdown_dir / fname
     reformatted = ReformatMarkdownDocument(fname, markdown, WIDTH).reformat()
     target.write_text(reformatted + "\n", encoding="utf8")
+    print("Checking result")
+    compare(markdown, reformatted)
 
 
 @CmdLine("a")
@@ -61,6 +65,8 @@ def reformat_all():
     print("Reformatting all markdown files ...")
     for sourceText in config.markdown_dir.glob("*.md"):
         _formatOneFile(sourceText)
+
+
 
     # slugline = re.compile("^(//|#) .+?\.[a-z]+$", re.MULTILINE)
     # xmlslug  = re.compile("^<!-- .+?\.[a-z]+ +-->$", re.MULTILINE)

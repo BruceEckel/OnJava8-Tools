@@ -28,7 +28,7 @@ import sys
 import logging
 from logging import debug
 logging.basicConfig(filename= __file__.split('.')[0] + ".log", filemode='w', level=logging.DEBUG)
-def debug(x): pass # Comment this to produce debug file
+#def debug(x): pass # Comment this to produce debug file
 
 subhead_chars = string.ascii_letters + string.digits + "`"
 
@@ -162,7 +162,7 @@ class ReformatMarkdownDocument(MarkdownLines):
 
     def subhead(self):
         debug("subhead")
-        if (self.nonblank() and self.next_line().startswith(("-", "="))):
+        if (self.nonblank() and self.next_line().startswith(("----", "====="))):
                 debug("--> success: " + self.next_line()[0])
                 self.transfer(2)
                 return True

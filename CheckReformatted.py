@@ -10,7 +10,7 @@ import shutil
 from betools import CmdLine
 import config
 
-@CmdLine("c", num_args=1)
+# @CmdLine("c", num_args=1)
 def checkOneFile():
     "Format a single file"
     _checkOneFile(sys.argv[2])
@@ -19,13 +19,18 @@ def checkOneFile():
 def _checkOneFile(arg):
     fname = Path(arg).name
     source_file = config.markdown_dir / fname
-    target = config.reformat_dir / fname
+    # target = config.reformat_dir / fname
+    target = config.markdown_dir / fname
     if not target.exists():
         print(str(fname) + " does not exist in " + str(config.reformat_dir))
         sys.exit(1)
     print("checking " + fname)
     original = source_file.read_text(encoding="utf-8").split()
     reformatted = target.read_text(encoding="utf8").split()
+    compare(original, reformatted)
+
+
+def compare(original, reformatted):
     for n, z in enumerate(zip(original, reformatted)):
         if z[0] != z[1]:
             print("n: %d" % n)
@@ -46,7 +51,7 @@ def _checkOneFile(arg):
         sys.exit(1)
 
 
-@CmdLine("a")
+# @CmdLine("a")
 def check_all():
     print("Checking all markdown files ...")
     for sourceText in config.markdown_dir.glob("*.md"):
