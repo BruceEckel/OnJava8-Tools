@@ -28,7 +28,9 @@ def filter_out_code(text):
             continue
         result.append(line)
     decoded = "\n".join(result)
-    return re.sub(r'`.*?`', ' ', decoded, flags=re.DOTALL)
+    config.stripped_for_style.write_text(decoded + "\n", encoding="utf8")
+    stripped = re.sub(r'`.*?`', ' ', decoded, flags=re.DOTALL)
+    config.stripped_for_spelling.write_text(stripped + "\n", encoding="utf8")
 
 
 @CmdLine('s')
@@ -37,8 +39,7 @@ def spell_combined_files():
     Put markdown files together and filter out code to prepare for aspell
     """
     combine_markdown_files(config.combined_markdown)
-    combined = filter_out_code(config.combined_markdown.read_text(encoding="utf-8"))
-    config.stripped_for_spelling.write_text(combined + "\n", encoding="utf8")
+    filter_out_code(config.combined_markdown.read_text(encoding="utf-8"))
     os.chdir(str(config.build_dir))
     print("now run sp.bat")
 
