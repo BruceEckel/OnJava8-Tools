@@ -100,9 +100,6 @@ def copyGradleFiles():
                 os.makedirs(str(dest.parent))
             debug("copy " + str(gradle_path.relative_to(config.github_code_dir.parent)) + " " + str(dest.relative_to(config.example_dir)))
             shutil.copy(str(gradle_path), str(dest))
-        else:
-            print("%s doesn't exist!" % gradle_path)
-
 
 
 @CmdLine("c")
