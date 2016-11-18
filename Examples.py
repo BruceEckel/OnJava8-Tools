@@ -35,6 +35,7 @@ def copyTestFiles():
 tools_to_copy = [ Path(sys.path[0]) / f for f in [
     "_verify_output.py",
     "update_extracted_example_output.py", # For Development
+    "ShowFindbugs.py",
     "check.bat", # For development
     "gg.bat", # Short for gradlew
 ]]
