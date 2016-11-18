@@ -85,18 +85,23 @@ def extractExamples():
 @CmdLine("g")
 def copyGradleFiles():
     print("Copying Gradle Files ...")
+    if not config.github_code_dir.exists():
+        print("Doesn't exist: %s" % config.github_code_dir)
+        sys.exit(1)
     for gradle_path in list(config.github_code_dir.rglob("*gradle*")) + \
                        list(config.github_code_dir.rglob("*.xml")) + \
                        list(config.github_code_dir.rglob("*.yml")) + \
                        list(config.github_code_dir.rglob("*.md")) + \
                        list((config.github_code_dir / "buildSrc").rglob("*")):
         dest = config.example_dir / gradle_path.relative_to(config.github_code_dir)
-        if(gradle_path.is_file()):
+        if gradle_path.is_file():
             if(not dest.parent.exists()):
                 debug("creating " + str(dest.parent))
                 os.makedirs(str(dest.parent))
             debug("copy " + str(gradle_path.relative_to(config.github_code_dir.parent)) + " " + str(dest.relative_to(config.example_dir)))
             shutil.copy(str(gradle_path), str(dest))
+        else:
+            print("%s doesn't exist!" % gradle_path)
 
 
 
