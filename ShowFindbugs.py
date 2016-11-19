@@ -1,6 +1,6 @@
 #! py -3
 # Requires Python 3.5
-# Displays all the Findbugs main.html reports from "On Java 8"
+# Displays all the Findbugs main.html reports from "On Java 8" on Windows
 # Must run "gradlew findbugsMain" first
 from pathlib import Path
 import os
