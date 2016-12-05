@@ -7,20 +7,18 @@ Splits combined markdown file into chapters.
 
 For use after mass edits on single document.
 """
+import config
 from pathlib import Path
 import sys
 import re
 from collections import OrderedDict
 from betools import CmdLine
 
-rootPath = Path(sys.path[0]).parent / "on-java"
-markdown_dir = rootPath / "Markdown"
-build_dir = rootPath / "ebook_build"
-combined_markdown = build_dir / "onjava-assembled.md"
-disassembled_dir = markdown_dir
-assert markdown_dir.exists()
-assert build_dir.exists()
-assert combined_markdown.exists()
+assert config.markdown_dir.exists()
+assert config.build_dir.exists()
+combined_markdown = config.build_dir / "onjava-assembled.md"
+assert config.combined_markdown.exists()
+disassembled_dir = config.markdown_dir
 
 
 @CmdLine('d')
@@ -28,7 +26,7 @@ def disassemble_combined_markdown_file():
     "turn markdown file into a collection of chapter-based files"
     with Path(combined_markdown).open(encoding="utf8") as ojmd:
         book = ojmd.read()
-    chapters = re.compile(r"\n([A-Za-z\:\&\?\+\/ ]*)\n=+\n")
+    chapters = re.compile(r"\n([A-Za-z\:\&\?\+\-\/ ]*)\n=+\n")
     parts = chapters.split(book)
     names = parts[1::2]
     bodies = parts[0::2]
@@ -44,6 +42,7 @@ def disassemble_combined_markdown_file():
         fn = fn.replace("?", "")
         fn = fn.replace("+", "P")
         fn = fn.replace("/", "")
+        fn = fn.replace("-", "_")
         return "%02d_" % n + fn
 
     for i, p in enumerate(chaps):
