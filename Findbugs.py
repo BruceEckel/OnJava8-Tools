@@ -289,7 +289,7 @@ def adjusted_compare(extracted, repo_ex):
     with repo_ex.open() as rep:
         repo_text = rep.read().strip()
         repo_text = repo_text.replace("//:", "//")
-        repo_text = repo_text.replace("\n// ©2016 MindView LLC: see Copyright.txt", "")
+        repo_text = repo_text.replace("\n// ©2017 MindView LLC: see Copyright.txt", "")
         repo_text = repo_text.replace("\n///~", "")
         repo_text = repo_text.replace("*///~", "*/")
         repo_text = repo_text.replace("} ///~", "}")

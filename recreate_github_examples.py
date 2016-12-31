@@ -16,7 +16,7 @@ def insert_copyright(lines):
     else:
         cmt = "//"
     return [lines[0],
-            cmt + " (c)2016 MindView LLC: see Copyright.txt\n",
+            cmt + " (c)2017 MindView LLC: see Copyright.txt\n",
             cmt + " We make no guarantees that this code is fit for any purpose.\n",
             cmt + " Visit http://OnJava8.com for more book information.\n",
             ] + lines[1:]
