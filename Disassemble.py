@@ -26,7 +26,7 @@ def disassemble_combined_markdown_file():
     "turn markdown file into a collection of chapter-based files"
     with Path(combined_markdown).open(encoding="utf8") as ojmd:
         book = ojmd.read()
-    chapters = re.compile(r"\n([A-Za-z\:\&\?\+\-\/ ]*)\n=+\n")
+    chapters = re.compile(r"\n([A-Za-z\:\&\?\+\-\/\(\)\` ]*)\n=+\n")
     parts = chapters.split(book)
     names = parts[1::2]
     bodies = parts[0::2]
@@ -43,6 +43,9 @@ def disassemble_combined_markdown_file():
         fn = fn.replace("+", "P")
         fn = fn.replace("/", "")
         fn = fn.replace("-", "_")
+        fn = fn.replace("(", "")
+        fn = fn.replace(")", "")
+        fn = fn.replace("`", "")
         return "%02d_" % n + fn
 
     for i, p in enumerate(chaps):
