@@ -4,7 +4,7 @@ Common program configuration variables for "On Java" tools
 from pathlib import Path
 import sys
 
-code_width = 60
+code_width = 58
 
 tools_dir = Path(sys.path[0])
 rootPath = tools_dir.parent / "on-java"
