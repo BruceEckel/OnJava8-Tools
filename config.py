@@ -33,3 +33,5 @@ css = ebookResources / "onjava.css"
 metadata = ebookResources / "metadata.yaml"
 
 reformat_dir = rootPath / "Reformatted"
+
+sample_book = rootPath/ "SampleBook"
