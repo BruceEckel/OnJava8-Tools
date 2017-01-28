@@ -188,12 +188,14 @@ Catching Exceptions
 
 "37_Appendix_Data_Compression.md" :
 """
-## Simple Compression with GZIP
+Simple Compression with GZIP
+----------------------------
 """,
 
 "38_Appendix_Object_Serialization.md" :
 """
-## Finding the Class
+Finding the Class
+-----------------
 """,
 
 "39_Appendix_Preferences.md" : Include.ALL,
@@ -249,7 +251,7 @@ def copyRawMaterial():
         sys.exit()
 
     for sourceText in config.markdown_dir.glob("*.md"):
-        print("copying {}".format(sourceText.name))
+        #print("copying {}".format(sourceText.name))
         shutil.copy(sourceText, config.sample_book_original)
 
 
@@ -267,6 +269,7 @@ def extract_headings(text):
                 result += heading + "\n"
                 result += line + "\n"
         if re.match(r"^#{2,5} ", line):
+            result += "\n"
             result += line + "\n"
     return result
 
@@ -284,11 +287,13 @@ def process():
     #             if cutoffs[c.name] is not Include.ALL]
     for chapter in config.sample_book_original.glob("*.md"):
         if cutoffs[chapter.name] is Include.ALL:
+            print("copying {}".format(chapter.name))
             shutil.copy(chapter, config.sample_book)
             continue
         # if not cutoffs[chapter.name].strip():
         #     os.system("subl {}".format(chapter))
         #     sys.exit()
+        print("modifying {}".format(chapter.name))
         divider = cutoffs[chapter.name]
         parts = chapter.read_text().split(divider)
         result = parts[0] + divider + extract_headings(parts[1])
