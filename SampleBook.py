@@ -169,11 +169,12 @@ def process():
     2. From that point on, strip everything except subheads
     3. Add message saying "End of sample for this chapter"
     """
-    for sampleChapter in config.sample_book.glob("*.md"):
-        cutoff = cutoffs[sampleChapter.name]
-        print("{}: {}".format(sampleChapter.name, cutoff))
-        if cutoff is Include.ALL: continue
-        chapter = sampleChapter.read_text()
+    changes = [c for c in config.sample_book.glob("*.md")
+                if cutoffs[c.name] is not Include.ALL]
+    for chapter in changes:
+        print(chapter.name)
+        text = chapter.read_text()
+
 
 
 @CmdLine('f')
