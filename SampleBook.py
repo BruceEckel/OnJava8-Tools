@@ -27,108 +27,201 @@ cutoffs = {
 "05_Objects_Everywhere.md" : Include.ALL,
 "06_Operators.md" :  Include.ALL,
 "07_Control_Flow.md" : Include.ALL,
-"08_Housekeeping.md" : Include.ALL,
-"09_Implementation_Hiding.md" : Include.ALL,
-"10_Reuse.md" : Include.ALL,
-"11_Polymorphism.md" : Include.ALL,
+
+"08_Housekeeping.md" :
+"""
+No-arg Constructors
+-------------------
+""",
+
+"09_Implementation_Hiding.md" :
+"""
+### Creating Unique Package Names
+""",
+
+"10_Reuse.md" :
+"""
+### Initializing the Base Class
+""",
+
+"11_Polymorphism.md" :
+"""
+### Forgetting the Object Type
+""",
+
 "12_Interfaces.md" :
-"",
+"""
+Interfaces
+----------
+""",
 
 "13_Inner_Classes.md" :
-"",
+"""
+Using `.this` and `.new`
+------------------------
+""",
 
 "14_Collections.md" :
-"",
+"""
+Adding Groups of Elements
+-------------------------
+""",
 
 "15_Functional_Programming.md" :
-"",
+"""
+Method References
+-----------------
+""",
 
 "16_Streams.md" :
-"",
+"""
+### Random Number Streams
+""",
 
 "17_Exceptions.md" :
-"",
+"""
+Creating Your Own Exceptions
+----------------------------
+""",
 
 "18_Validating_Your_Code.md" :
-"",
+"""
+### The Illusion of Test Coverage
+""",
 
 "19_Files.md" :
-"",
+"""
+### Selecting Pieces of a `Path`
+""",
 
 "20_Strings.md" :
-"",
+"""
+Unintended Recursion
+--------------------
+""",
 
 "21_Type_Information.md" :
-"",
+"""
+### Class Literals
+""",
 
 "22_Generics.md" :
-"",
+"""
+### A Stack Class
+""",
 
 "23_Arrays.md" :
-"",
+"""
+Arrays are First-Class Objects
+------------------------------
+""",
 
 "24_Enumerations.md" :
-"",
+"""
+`enum`s in `switch` Statements
+------------------------------
+""",
 
 "25_Annotations.md" :
-"",
+"""
+### Meta-Annotations
+""",
 
 "26_Concurrent_Programming.md" :
-"",
+"""
+Concurrency is for Speed
+------------------------
+""",
 
 "27_Patterns.md" :
-"",
+"""
+### Classifying Patterns
+""",
 
-"28_Appendix_Supplements.md" :
-"",
+"28_Appendix_Supplements.md" : Include.ALL,
 
 "29_Appendix_Programming_Guidelines.md" :
-"",
+"""
+Implementation
+--------------
+""",
 
 "30_Appendix_Passing_and_Returning_Objects.md" :
-"",
+"""
+Making Local Copies
+-------------------
+""",
 
 "31_Appendix_IO_Streams.md" :
-"",
+"""
+## Types of `InputStream`
+""",
 
 "32_Appendix_Standard_IO.md" :
-"",
+"""
+### Changing `System.out` to a `PrintWriter`
+""",
 
 "33_Appendix_New_IO.md" :
-"",
+"""
+Converting Data
+---------------
+""",
 
 "34_Appendix_Understanding_equals_and_hashCode.md" :
-"",
+"""
+A Canonical `equals()`
+----------------------
+""",
 
 "35_Appendix_Collection_Topics.md" :
-"",
+"""
+`List` Behavior
+---------------
+""",
 
 "36_Appendix_Low_Level_Concurrency.md" :
-"",
+"""
+Catching Exceptions
+-------------------
+""",
 
 "37_Appendix_Data_Compression.md" :
-"",
+"""
+## Simple Compression with GZIP
+""",
 
 "38_Appendix_Object_Serialization.md" :
-"",
+"""
+## Finding the Class
+""",
 
-"39_Appendix_Preferences.md" :
-"",
+"39_Appendix_Preferences.md" : Include.ALL,
 
 "40_Appendix_Network_Programming.md" :
-"",
+"""
+#### Testing Programs Without a Network
+""",
 
 "41_Appendix_Remote_Methods.md" :
-"",
+"""
+Implementing the Remote Interface
+---------------------------------
+""",
 
 "42_Appendix_Benefits_and_Costs_of_Static_Type_Checking.md" :
-"",
+"""
+Static Type Checking vs. Testing
+--------------------------------
+""",
 
-"43_Appendix_The_Positive_Legacy_of_CPP_and_Java.md" :
-"",
+"43_Appendix_The_Positive_Legacy_of_CPP_and_Java.md" : Include.ALL,
 
 "44_Appendix_Being_a_Programmer.md" :
-"",
+"""
+A Career in Computing
+---------------------
+""",
 
 }
 
@@ -172,8 +265,14 @@ def process():
     changes = [c for c in config.sample_book.glob("*.md")
                 if cutoffs[c.name] is not Include.ALL]
     for chapter in changes:
-        print(chapter.name)
+        # if not cutoffs[chapter.name].strip():
+        #     os.system("subl {}".format(chapter))
+        #     sys.exit()
         text = chapter.read_text()
+        divider = cutoffs[chapter.name]
+        parts = text.split(divider)
+        print(chapter.name)
+        print(divider)
 
 
 
