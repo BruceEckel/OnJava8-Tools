@@ -240,9 +240,9 @@ def clean():
 
 @CmdLine("x")
 def copyRawMaterial():
-    if not config.sample_book.exists():
-        # debug("creating {}".format(config.sample_book))
-        config.sample_book.mkdir()
+    if not config.sample_book_original.exists():
+        config.sample_book.mkdir(exist_ok=True)
+        config.sample_book_original.mkdir()
 
     if not config.markdown_dir.exists():
         print("Cannot find", config.markdown_dir)
@@ -250,7 +250,25 @@ def copyRawMaterial():
 
     for sourceText in config.markdown_dir.glob("*.md"):
         print("copying {}".format(sourceText.name))
-        shutil.copy(sourceText, config.sample_book)
+        shutil.copy(sourceText, config.sample_book_original)
+
+
+def extract_headings(text):
+    result = ""
+    lines = text.splitlines()
+    for n, line in enumerate(lines):
+        if re.match(r"^[=-]+$", line):
+            heading = lines[n-1]
+            highbound = len(heading) + 2
+            lowbound = len(heading) - 2
+            borderlen = len(line)
+            if borderlen <= highbound and borderlen >= lowbound:
+                result += "\n"
+                result += heading + "\n"
+                result += line + "\n"
+        if re.match(r"^#{2,5} ", line):
+            result += line + "\n"
+    return result
 
 
 @CmdLine("p")
@@ -262,17 +280,19 @@ def process():
     2. From that point on, strip everything except subheads
     3. Add message saying "End of sample for this chapter"
     """
-    changes = [c for c in config.sample_book.glob("*.md")
-                if cutoffs[c.name] is not Include.ALL]
-    for chapter in changes:
+    # changes = [c for c in config.sample_book_original.glob("*.md")
+    #             if cutoffs[c.name] is not Include.ALL]
+    for chapter in config.sample_book_original.glob("*.md"):
+        if cutoffs[chapter.name] is Include.ALL:
+            shutil.copy(chapter, config.sample_book)
+            continue
         # if not cutoffs[chapter.name].strip():
         #     os.system("subl {}".format(chapter))
         #     sys.exit()
-        text = chapter.read_text()
         divider = cutoffs[chapter.name]
-        parts = text.split(divider)
-        print(chapter.name)
-        print(divider)
+        parts = chapter.read_text().split(divider)
+        result = parts[0] + divider + extract_headings(parts[1])
+        (config.sample_book / chapter.name).write_text(result)
 
 
 
@@ -281,6 +301,7 @@ def fresh():
     "Create fresh sample book"
     clean()
     copyRawMaterial()
+    process()
 
 
 if __name__ == '__main__':

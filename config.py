@@ -35,3 +35,4 @@ metadata = ebookResources / "metadata.yaml"
 reformat_dir = rootPath / "Reformatted"
 
 sample_book = rootPath/ "SampleBook"
+sample_book_original = rootPath/ "SampleBook" / "Original"
