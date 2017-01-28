@@ -14,44 +14,23 @@ import pprint
 import difflib
 from betools import CmdLine
 import config
+from enum import Enum, auto
+
+Include = Enum('Include', 'ALL')
 
 cutoffs = {
-"00_Front.md" :
-"",
-
-"01_Preface.md" :
-"",
-
-"02_Introduction.md" :
-"",
-
-"03_What_is_an_Object.md" :
-"",
-
-"04_Installing_Java_and_the_Book_Examples.md" :
-"",
-
-"05_Objects_Everywhere.md" :
-"",
-
-"06_Operators.md" :
-"",
-
-"07_Control_Flow.md" :
-"",
-
-"08_Housekeeping.md" :
-"",
-
-"09_Implementation_Hiding.md" :
-"",
-
-"10_Reuse.md" :
-"",
-
-"11_Polymorphism.md" :
-"",
-
+"00_Front.md" : Include.ALL,
+"01_Preface.md" : Include.ALL,
+"02_Introduction.md" : Include.ALL,
+"03_What_is_an_Object.md" : Include.ALL,
+"04_Installing_Java_and_the_Book_Examples.md" : Include.ALL,
+"05_Objects_Everywhere.md" : Include.ALL,
+"06_Operators.md" :  Include.ALL,
+"07_Control_Flow.md" : Include.ALL,
+"08_Housekeeping.md" : Include.ALL,
+"09_Implementation_Hiding.md" : Include.ALL,
+"10_Reuse.md" : Include.ALL,
+"11_Polymorphism.md" : Include.ALL,
 "12_Interfaces.md" :
 "",
 
@@ -190,6 +169,11 @@ def process():
     2. From that point on, strip everything except subheads
     3. Add message saying "End of sample for this chapter"
     """
+    for sampleChapter in config.sample_book.glob("*.md"):
+        cutoff = cutoffs[sampleChapter.name]
+        print("{}: {}".format(sampleChapter.name, cutoff))
+        if cutoff is Include.ALL: continue
+        chapter = sampleChapter.read_text()
 
 
 @CmdLine('f')
