@@ -154,7 +154,8 @@ Making Local Copies
 
 "31_Appendix_IO_Streams.md" :
 """
-## Types of `InputStream`
+Types of `InputStream`
+----------------------
 """,
 
 "32_Appendix_Standard_IO.md" :
