@@ -18,14 +18,14 @@ def clean_new_build_dir():
     Delete and create basic book build directory
     """
     close_viewer()
-    recreate_build_dir(config.build_dir)
+    recreate_build_dir()
 
 @CmdLine('s')
 def edit_combined_files():
     """
     Put markdown files together and open result in editor
     """
-    combine_markdown_files(config.markdown_dir, config.combined_markdown)
+    combine_markdown_files(config.combined_markdown)
     os.system("subl {}".format(config.combined_markdown))
 
 
@@ -64,8 +64,8 @@ def convert_to_epub():
     print(cmd)
     os.system(cmd)
     os.system("start BruceEckelOnJava.epub")
-    # os.system(r'copy /Y BruceEckelOnJava.epub "C:\Users\Bruce\Google Drive\ebooks"')
-    # os.system(r'copy /Y BruceEckelOnJava.epub "C:\Users\Bruce\Dropbox\__Ebooks"')
+    os.system(r'copy /Y BruceEckelOnJava.epub "C:\Users\Bruce\Google Drive\ebooks"')
+    os.system(r'copy /Y BruceEckelOnJava.epub "C:\Users\Bruce\Dropbox\__Ebooks"')
 
 
 def copy_and_unzip_epub():
@@ -112,10 +112,10 @@ def create_fresh_epub():
     Fresh conversion from Markdown
     """
     close_viewer()
-    ensure_ebook_build_dir(config.build_dir)
-    combine_markdown_files(config.markdown_dir, config.combined_markdown)
+    ensure_ebook_build_dir()
+    combine_markdown_files(config.combined_markdown)
     convert_to_epub()
-    # copy_and_unzip_epub()
+    copy_and_unzip_epub()
 
 
 @CmdLine('a')
@@ -124,8 +124,8 @@ def all():
     Create fresh epub, epub for E-ink, and mobi for e-ink
     """
     close_viewer()
-    ensure_ebook_build_dir(config.build_dir)
-    combine_markdown_files(config.markdown_dir, config.combined_markdown)
+    ensure_ebook_build_dir()
+    combine_markdown_files(config.combined_markdown)
     convert_to_epub()
     copy_and_unzip_epub()
     convert_to_epub_for_e_ink()

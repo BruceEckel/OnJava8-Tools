@@ -12,9 +12,10 @@ import re
 import shutil
 import pprint
 import difflib
+from enum import Enum
 from betools import CmdLine
 import config
-from enum import Enum, auto
+from ebook_build import *
 
 Include = Enum('Include', 'ALL')
 
@@ -232,13 +233,7 @@ A Career in Computing
 @CmdLine("c")
 def clean():
     "Remove SampleBook directory"
-    print("Cleaning ...")
-    try:
-        if config.sample_book.exists():
-            shutil.rmtree(str(config.sample_book))
-    except:
-        print("Error: could not remove {}".format(config.sample_book))
-        sys.exit(1);
+    remove_dir(config.sample_book)
 
 
 @CmdLine("x")
