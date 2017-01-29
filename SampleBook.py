@@ -221,7 +221,7 @@ Static Type Checking vs. Testing
 
 "43_Appendix_The_Positive_Legacy_of_CPP_and_Java.md" : Include.ALL,
 
-"44_Appendix_Being_a_Programmer.md" :
+"44_Appendix_Becoming_a_Programmer.md" :
 """
 A Career in Computing
 ---------------------
@@ -233,14 +233,14 @@ A Career in Computing
 @CmdLine("c")
 def clean():
     "Remove SampleBook directory"
-    remove_dir(config.sample_book)
+    remove_dir(config.sample_book_dir)
 
 
-@CmdLine("x")
-def copyRawMaterial():
-    if not config.sample_book_original.exists():
-        config.sample_book.mkdir(exist_ok=True)
-        config.sample_book_original.mkdir()
+@CmdLine("r")
+def createRawMaterial():
+    if not config.sample_book_original_dir.exists():
+        config.sample_book_dir.mkdir(exist_ok=True)
+        config.sample_book_original_dir.mkdir()
 
     if not config.markdown_dir.exists():
         print("Cannot find", config.markdown_dir)
@@ -248,7 +248,9 @@ def copyRawMaterial():
 
     for sourceText in config.markdown_dir.glob("*.md"):
         #print("copying {}".format(sourceText.name))
-        shutil.copy(sourceText, config.sample_book_original)
+        shutil.copy(sourceText, config.sample_book_original_dir)
+
+    ensure_ebook_build_dir(config.sample_book_dir)
 
 
 def extract_headings(text):
@@ -279,12 +281,12 @@ def process():
     2. From that point on, strip everything except subheads
     3. Add message saying "End of sample for this chapter"
     """
-    # changes = [c for c in config.sample_book_original.glob("*.md")
+    # changes = [c for c in config.sample_book_original_dir.glob("*.md")
     #             if cutoffs[c.name] is not Include.ALL]
-    for chapter in config.sample_book_original.glob("*.md"):
+    for chapter in config.sample_book_original_dir.glob("*.md"):
         if cutoffs[chapter.name] is Include.ALL:
             print("copying {}".format(chapter.name))
-            shutil.copy(chapter, config.sample_book)
+            shutil.copy(chapter, config.sample_book_dir)
             continue
         # if not cutoffs[chapter.name].strip():
         #     os.system("subl {}".format(chapter))
@@ -293,16 +295,17 @@ def process():
         divider = cutoffs[chapter.name]
         parts = chapter.read_text().split(divider)
         result = parts[0] + divider + extract_headings(parts[1])
-        (config.sample_book / chapter.name).write_text(result)
-
+        (config.sample_book_dir / chapter.name).write_text(result)
 
 
 @CmdLine('f')
 def fresh():
     "Create fresh sample book"
     clean()
-    copyRawMaterial()
+    createRawMaterial()
     process()
+    combine_markdown_files(config.sample_book_dir, config.combined_markdown_sample)
+    convert_to_epub(config.sample_book_dir, config.epub_sample_file_name)
 
 
 if __name__ == '__main__':

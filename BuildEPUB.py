@@ -11,7 +11,6 @@ from betools import CmdLine
 from ebook_build import *
 import config
 
-
 @CmdLine('c')
 def clean_new_build_dir():
     """
@@ -29,51 +28,12 @@ def edit_combined_files():
     os.system("subl {}".format(config.combined_markdown))
 
 
-def pandoc_epub_command(output_name):
-    return (
-        "pandoc onjava-assembled.md -t epub3 -o " + output_name +
-        " -f markdown-native_divs "
-        " --smart "
-        " --epub-cover-image=cover.jpg "
-        " --epub-embed-font=chapter.png "
-        " --epub-embed-font=subhead.png "
-        " --epub-embed-font=level-2.png "
-        " --epub-embed-font=UbuntuMono-R.ttf "
-        " --epub-embed-font=UbuntuMono-RI.ttf "
-        " --epub-embed-font=UbuntuMono-B.ttf "
-        " --epub-embed-font=UbuntuMono-BI.ttf "
-        " --epub-embed-font=georgia.ttf "
-        " --epub-embed-font=georgiab.ttf "
-        " --epub-embed-font=georgiai.ttf "
-        " --epub-embed-font=georgiaz.ttf "
-        " --epub-embed-font=verdana.ttf "
-        " --epub-embed-font=verdanab.ttf "
-        " --epub-embed-font=verdanai.ttf "
-        " --epub-embed-font=verdanaz.ttf "
-        " --epub-embed-font=YuGothicUI-Semibold.ttf "
-        " --toc-depth=2 "
-        " --epub-stylesheet=onjava.css ")
-
-
-def convert_to_epub():
-    """
-    Pandoc markdown to epub
-    """
-    os.chdir(str(config.build_dir))
-    cmd = pandoc_epub_command("BruceEckelOnJava.epub")
-    print(cmd)
-    os.system(cmd)
-    os.system("start BruceEckelOnJava.epub")
-    # os.system(r'copy /Y BruceEckelOnJava.epub "C:\Users\Bruce\Google Drive\ebooks"')
-    # os.system(r'copy /Y BruceEckelOnJava.epub "C:\Users\Bruce\Dropbox\__Ebooks"')
-
-
 def copy_and_unzip_epub():
     """
     Create unpacked epub
     """
-    shutil.copy("BruceEckelOnJava.epub", "BruceEckelOnJava.zip")
-    os.system("unzip BruceEckelOnJava.zip -d epub_files")
+    shutil.copy(config.epub_file_name, config.base_name + ".zip")
+    os.system("unzip " + config.base_name + ".zip -d epub_files")
 
 
 def convert_to_epub_for_e_ink():
@@ -81,7 +41,7 @@ def convert_to_epub_for_e_ink():
     Pandoc markdown to black & white epub
     """
     os.chdir(str(config.build_dir))
-    cmd = pandoc_epub_command("BruceEckelOnJava-E-INK.epub") + " --no-highlight "
+    cmd = pandoc_epub_command(config.base_name + "-E-INK.epub") + " --no-highlight "
     print(cmd)
     os.system(cmd)
 
@@ -91,7 +51,7 @@ def convert_to_e_ink_mobi():
     epub to e-ink kindle (mobi)
     """
     os.chdir(str(config.build_dir))
-    cmd = "kindlegen BruceEckelOnJava-E-INK.epub"
+    cmd = "kindlegen " + config.base_name + "-E-INK.epub"
     print(cmd)
     os.system(cmd)
 
@@ -101,7 +61,7 @@ def convert_to_color_mobi():
     epub to color kindle (mobi)
     """
     os.chdir(str(config.build_dir))
-    cmd = "kindlegen BruceEckelOnJava.epub"
+    cmd = "kindlegen " + config.epub_file_name
     print(cmd)
     os.system(cmd)
 
@@ -114,7 +74,7 @@ def create_fresh_epub():
     close_viewer()
     ensure_ebook_build_dir(config.build_dir)
     combine_markdown_files(config.markdown_dir, config.combined_markdown)
-    convert_to_epub()
+    convert_to_epub(config.build_dir, config.epub_file_name)
     # copy_and_unzip_epub()
 
 
@@ -126,7 +86,7 @@ def all():
     close_viewer()
     ensure_ebook_build_dir(config.build_dir)
     combine_markdown_files(config.markdown_dir, config.combined_markdown)
-    convert_to_epub()
+    convert_to_epub(config.build_dir, config.epub_file_name)
     copy_and_unzip_epub()
     convert_to_epub_for_e_ink()
     convert_to_e_ink_mobi()

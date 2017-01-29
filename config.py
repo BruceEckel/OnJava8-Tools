@@ -4,6 +4,10 @@ Common program configuration variables for "On Java" tools
 from pathlib import Path
 import sys
 
+base_name = "BruceEckelOnJava8"
+epub_file_name = base_name + ".epub"
+epub_sample_file_name = base_name + "Sample.epub"
+
 code_width = 58
 
 tools_dir = Path(sys.path[0])
@@ -34,5 +38,6 @@ metadata = ebookResources / "metadata.yaml"
 
 reformat_dir = rootPath / "Reformatted"
 
-sample_book = rootPath/ "SampleBook"
-sample_book_original = rootPath/ "SampleBook" / "Original"
+sample_book_dir = rootPath / "SampleBook"
+sample_book_original_dir = rootPath / "SampleBook" / "Original"
+combined_markdown_sample = sample_book_dir / "onjava-assembled.md"

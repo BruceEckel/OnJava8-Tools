@@ -4,6 +4,7 @@
 Common tools for ebook building
 """
 from pathlib import Path
+import os
 import sys
 import shutil
 import config
@@ -95,3 +96,42 @@ def combine_markdown_files(source_dir, target_file):
     with target_file.open('w', encoding="utf8") as book:
         book.write(assembled)
     print("\n\n")
+
+
+def pandoc_epub_command(output_name):
+    return (
+        "pandoc onjava-assembled.md -t epub3 -o " + output_name +
+        " -f markdown-native_divs "
+        " --smart "
+        " --epub-cover-image=cover.jpg "
+        " --epub-embed-font=chapter.png "
+        " --epub-embed-font=subhead.png "
+        " --epub-embed-font=level-2.png "
+        " --epub-embed-font=UbuntuMono-R.ttf "
+        " --epub-embed-font=UbuntuMono-RI.ttf "
+        " --epub-embed-font=UbuntuMono-B.ttf "
+        " --epub-embed-font=UbuntuMono-BI.ttf "
+        " --epub-embed-font=georgia.ttf "
+        " --epub-embed-font=georgiab.ttf "
+        " --epub-embed-font=georgiai.ttf "
+        " --epub-embed-font=georgiaz.ttf "
+        " --epub-embed-font=verdana.ttf "
+        " --epub-embed-font=verdanab.ttf "
+        " --epub-embed-font=verdanai.ttf "
+        " --epub-embed-font=verdanaz.ttf "
+        " --epub-embed-font=YuGothicUI-Semibold.ttf "
+        " --toc-depth=2 "
+        " --epub-stylesheet=onjava.css ")
+
+
+def convert_to_epub(target_dir, epub_name):
+    """
+    Pandoc markdown to epub
+    """
+    os.chdir(str(target_dir))
+    cmd = pandoc_epub_command(epub_name)
+    print(cmd)
+    os.system(cmd)
+    os.system("start " + config.epub_file_name)
+    # os.system(r'copy /Y BruceEckelOnJava.epub "C:\Users\Bruce\Google Drive\ebooks"')
+    # os.system(r'copy /Y BruceEckelOnJava.epub "C:\Users\Bruce\Dropbox\__Ebooks"')
