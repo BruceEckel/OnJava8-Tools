@@ -17,6 +17,12 @@ from betools import CmdLine
 import config
 from ebook_build import *
 
+end_of_sample_chapter = """
+---------------
+<span style="font-size: 250%;">END OF SAMPLE CHAPTER</span>
+---------------
+"""
+
 Include = Enum('Include', 'ALL')
 
 cutoffs = {
@@ -281,20 +287,15 @@ def process():
     2. From that point on, strip everything except subheads
     3. Add message saying "End of sample for this chapter"
     """
-    # changes = [c for c in config.sample_book_original_dir.glob("*.md")
-    #             if cutoffs[c.name] is not Include.ALL]
     for chapter in config.sample_book_original_dir.glob("*.md"):
         if cutoffs[chapter.name] is Include.ALL:
             print("copying {}".format(chapter.name))
             shutil.copy(chapter, config.sample_book_dir)
             continue
-        # if not cutoffs[chapter.name].strip():
-        #     os.system("subl {}".format(chapter))
-        #     sys.exit()
         print("modifying {}".format(chapter.name))
         divider = cutoffs[chapter.name]
         parts = chapter.read_text().split(divider)
-        result = parts[0] + divider + extract_headings(parts[1])
+        result = parts[0] + end_of_sample_chapter + divider + extract_headings(parts[1])
         (config.sample_book_dir / chapter.name).write_text(result)
 
 

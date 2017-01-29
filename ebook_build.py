@@ -132,6 +132,6 @@ def convert_to_epub(target_dir, epub_name):
     cmd = pandoc_epub_command(epub_name)
     print(cmd)
     os.system(cmd)
-    os.system("start " + config.epub_file_name)
+    os.system("start " + epub_name)
     # os.system(r'copy /Y BruceEckelOnJava.epub "C:\Users\Bruce\Google Drive\ebooks"')
     # os.system(r'copy /Y BruceEckelOnJava.epub "C:\Users\Bruce\Dropbox\__Ebooks"')
