@@ -1,2 +1,2 @@
 @echo off
-python %~dp0FootnoteFix.py %*
+py -3 %~dp0FootnoteFix.py %*

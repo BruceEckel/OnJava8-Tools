@@ -1,2 +1,2 @@
 @echo off
-python %~dp0Spelling.py %*
+py -3 %~dp0Spelling.py %*

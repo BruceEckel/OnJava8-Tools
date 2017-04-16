@@ -1,2 +1,2 @@
 @echo off
-python %~dp0runjava.py %*
+py -3 %~dp0runjava.py %*

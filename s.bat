@@ -1,2 +1,2 @@
 @echo off
-python %~dp0style_check.py %*
+py -3 %~dp0style_check.py %*

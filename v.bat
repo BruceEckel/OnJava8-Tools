@@ -1,2 +1,2 @@
 @echo off
-python %~dp0Validate.py %*
+py -3 %~dp0Validate.py %*

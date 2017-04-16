@@ -1,2 +1,2 @@
 @echo off
-python %~dp0Tables.py %*
+py -3 %~dp0Tables.py %*

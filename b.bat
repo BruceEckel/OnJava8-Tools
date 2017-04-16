@@ -1,2 +1,2 @@
 @echo off
-python %~dp0BuildEPUB.py %*
+py -3 %~dp0BuildEPUB.py %*

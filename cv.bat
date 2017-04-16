@@ -3,4 +3,4 @@ copy %~dp0verify_output.py C:\Users\Bruce\Documents\Git\on-java\ExtractedExample
 del update_output.bat
 del validate_failures.txt
 del strategies.txt
-python C:\Users\Bruce\Documents\Git\on-java\ExtractedExamples\verify_output.py
+py -3 C:\Users\Bruce\Documents\Git\on-java\ExtractedExamples\verify_output.py

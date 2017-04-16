@@ -1,2 +1,2 @@
 @echo off
-python %~dp0show_headings.py %*
+py -3 %~dp0show_headings.py %*

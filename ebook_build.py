@@ -39,7 +39,10 @@ def populate_ebook_build_dir(target_dir):
         str(config.img_dir),
         str(target_dir / "images"))
     def copy(src):
+        source = Path(src)
+        assert source.exists()
         shutil.copy(src, target_dir)
+        assert (Path(target_dir) / source.name).exists()
     [copy(font) for font in config.fonts.glob("*")]
     copy(config.cover)
     copy(config.css)
@@ -132,6 +135,6 @@ def convert_to_epub(target_dir, epub_name):
     cmd = pandoc_epub_command(epub_name)
     print(cmd)
     os.system(cmd)
-    os.system("start " + epub_name)
+    # os.system("start " + epub_name)
     # os.system(r'copy /Y BruceEckelOnJava.epub "C:\Users\Bruce\Google Drive\ebooks"')
     # os.system(r'copy /Y BruceEckelOnJava.epub "C:\Users\Bruce\Dropbox\__Ebooks"')

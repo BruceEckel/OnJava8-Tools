@@ -1,4 +1,4 @@
 @echo off
 pushd %~dp0
-python %~dp0recreate_github_examples.py %*
+py -3 %~dp0recreate_github_examples.py %*
 popd

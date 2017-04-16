@@ -1,2 +1,2 @@
 @echo off
-python %~dp0output_updater.py %*
+py -3 %~dp0output_updater.py %*

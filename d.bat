@@ -1,2 +1,2 @@
 @echo off
-python %~dp0Disassemble.py %*
+py -3 %~dp0Disassemble.py %*

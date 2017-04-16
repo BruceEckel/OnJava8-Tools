@@ -1,2 +1,2 @@
 @echo off
-python %~dp0Findbugs.py %*
+py -3 %~dp0Findbugs.py %*

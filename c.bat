@@ -1,2 +1,2 @@
 @echo off
-python %~dp0check_book.py %*
+py -3 %~dp0check_book.py %*

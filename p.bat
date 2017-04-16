@@ -1,2 +1,2 @@
 @echo off
-python %~dp0Pandoc-PDFBuild.py %*
+py -3 %~dp0Pandoc-PDFBuild.py %*

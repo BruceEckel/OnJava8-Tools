@@ -1,2 +1,2 @@
 @echo off
-python %~dp0IntegrateExampleOutput.py %*
+py -3 %~dp0IntegrateExampleOutput.py %*

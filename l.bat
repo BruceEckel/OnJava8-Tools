@@ -1,3 +1,3 @@
 @echo off
-python %~dp0linewidth.py %*
+py -3 %~dp0linewidth.py %*
 exit

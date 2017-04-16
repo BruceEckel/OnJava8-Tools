@@ -1,4 +1,4 @@
 @echo off
 pushd %~dp0
-python %~dp0Reformat.py %*
+py -3 %~dp0Reformat.py %*
 popd
