@@ -38,6 +38,7 @@ tools_to_copy = [ Path(sys.path[0]) / f for f in [
     "ShowFindbugs.py",
     "check.bat", # For development
     "gg.bat", # Short for gradlew
+    "chkstyle.bat", # clean and run checkstyle, capturing output
 ]]
 
 maindef = re.compile("public\s+static\s+void\s+main")
