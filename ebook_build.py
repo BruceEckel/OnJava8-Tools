@@ -7,8 +7,10 @@ from pathlib import Path
 import os
 import sys
 import shutil
-import config
 import time
+import re
+from collections import OrderedDict
+import config
 
 try:
     import psutil
@@ -101,6 +103,43 @@ def combine_markdown_files(source_dir, target_file):
     print("\n\n")
 
 
+def disassemble_combined_markdown_file(combined_markdown):
+    "turn markdown file into a collection of chapter-based files"
+    with Path(combined_markdown).open(encoding="utf8") as ojmd:
+        book = ojmd.read()
+    chapters = re.compile(r"\n([A-Za-z\:\&\?\+\-\/\(\)\` ]*)\n=+\n")
+    parts = chapters.split(book)
+    names = parts[1::2]
+    bodies = parts[0::2]
+    chaps = OrderedDict()
+    chaps["Front"] = bodies[0]
+    for i, nm in enumerate(names):
+        chaps[nm] = bodies[i + 1].strip() + "\n"
+
+    def mdfilename(h1, n):
+        fn = h1.replace(": ", "_")
+        fn = fn.replace(" ", "_") + ".md"
+        fn = fn.replace("&", "and")
+        fn = fn.replace("?", "")
+        fn = fn.replace("+", "P")
+        fn = fn.replace("/", "")
+        fn = fn.replace("-", "_")
+        fn = fn.replace("(", "")
+        fn = fn.replace(")", "")
+        fn = fn.replace("`", "")
+        return "%02d_" % n + fn
+
+    for i, p in enumerate(chaps):
+        disassembled_file_name = mdfilename(p, i)
+        print(disassembled_file_name)
+        dest = config.markdown_dir / disassembled_file_name
+        with dest.open('w', encoding="utf8") as chp:
+            if "Front" not in p:
+                chp.write(p + "\n")
+                chp.write("=" * len(p) + "\n\n")
+            chp.write(chaps[p])
+
+
 def pandoc_epub_command(output_name):
     return (
         "pandoc onjava-assembled.md -t epub3 -o " + output_name +
@@ -138,3 +177,4 @@ def convert_to_epub(target_dir, epub_name):
     # os.system("start " + epub_name)
     # os.system(r'copy /Y BruceEckelOnJava.epub "C:\Users\Bruce\Google Drive\ebooks"')
     # os.system(r'copy /Y BruceEckelOnJava.epub "C:\Users\Bruce\Dropbox\__Ebooks"')
+

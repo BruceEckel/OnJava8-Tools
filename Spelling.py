@@ -15,7 +15,6 @@ import config
 
 # print(combined.encode("windows-1252"))
 
-
 def filter_out_code(text):
     result = []
     index = 0
@@ -38,10 +37,20 @@ def spell_combined_files():
     """
     Put markdown files together and filter out code to prepare for aspell
     """
-    combine_markdown_files(config.combined_markdown)
+    combine_markdown_files(config.markdown_dir, config.combined_markdown)
     filter_out_code(config.combined_markdown.read_text(encoding="utf-8"))
     os.chdir(str(config.build_dir))
-    print("now run sp.bat")
+    print("""
+now run sp.bat
+but correct spellings in the original using b -s
+""")
+
+
+# @CmdLine('d')
+# def disassemble_combined_spellchecked_markdown_file():
+#     "Turn spell checked markdown file into a collection of chapter-based files"
+#     disassemble_combined_markdown_file(config.stripped_for_spelling)
+
 
 
 if __name__ == '__main__':
