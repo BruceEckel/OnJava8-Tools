@@ -1,6 +1,5 @@
-import re
+import re, sys
 import textwrap
-
 
 class JavaMain:
     max_output_length = 32  # lines beyond which we flag this
@@ -13,10 +12,10 @@ class JavaMain:
     class JFile:
         @staticmethod
         def with_main(javaFilePath):
-            with javaFilePath.open() as doc:
-                code = doc.read()
-                if JavaMain.maindef.search(code) or "{Exec:" in code:
-                    return JavaMain.JFile(javaFilePath, code)
+            code = javaFilePath.read_text()
+            if JavaMain.maindef.search(code) or "{Exec:" in code:
+                # print(javaFilePath)
+                return JavaMain.JFile(javaFilePath, code)
             return None
 
         def __init__(self, javaFilePath, code):

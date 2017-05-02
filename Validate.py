@@ -120,7 +120,7 @@ class RunnableFile:
 
 class RunFiles:
     # RunFirst is temporary?
-    not_runnable = ["ValidateByHand", "TimeOutDuringTesting", "CompileTimeError", 'TimeOut', 'RunFirst']
+    not_runnable = ["ValidateByHand", "TimeOutDuringTesting", "WillNotCompile", 'TimeOut', 'RunFirst']
     skip_dirs = ["ui", "swt"]
 
     base = Path(".")
@@ -414,10 +414,10 @@ def showProblemErrors():
 
 
 # @CmdLine('w')
-def findAndEditAllCompileTimeError():
-    "Find all files tagged with {CompileTimeError} and edit them"
+def findAndEditAllWillNotCompile():
+    "Find all files tagged with {WillNotCompile} and edit them"
     os.chdir(str(examplePath))
-    with open("CompileTimeError.bat", 'w') as cte:
+    with open("WillNotCompile.bat", 'w') as cte:
         cte.write("subl ")
         for j in Path(".").rglob("*.java"):
             code = j.open().read()
@@ -437,10 +437,10 @@ def findAndEditAllCompileTimeError():
                 continue  # Checked
             if "// generics/Erased.java" in code:
                 continue  # Checked
-            if "{CompileTimeError}" in code:
+            if "{WillNotCompile}" in code:
                 cte.write(str(j) + " ")
                 print(j)
-    os.system("CompileTimeError.bat")
+    os.system("WillNotCompile.bat")
 
 
 @CmdLine("a")

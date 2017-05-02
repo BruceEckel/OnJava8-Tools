@@ -16,18 +16,18 @@ from difflib import SequenceMatcher
 from sortedcontainers import SortedSet
 from betools import CmdLine, ruler
 from java_main import JavaMain
-
-rootPath = Path(sys.path[0]).parent / "on-java"
-examplePath = rootPath / "ExtractedExamples"
+import config
 
 
 @CmdLine('t')
 def outputTagTypes():
     """Show different output tag variations"""
     types = set()
-    for jfp in examplePath.rglob("*.java"):
+    for jfp in config.example_dir.rglob("*.java"):
+        # print(jfp)
         # jf = JavaMain.JFile.with_main(jfp)
         jf = JavaMain.create(jfp)
+        # print(jf)
         if jf:
             if jf.j_file.output_line:
                 types.add(jf.j_file.output_line)
@@ -37,7 +37,7 @@ def outputTagTypes():
 @CmdLine('e')
 def extractResults():
     """Test extraction of all results"""
-    os.chdir(str(examplePath))
+    os.chdir(str(config.example_dir))
     with Path("AttachedResults.txt").open('w') as results:
         for jfp in Path(".").rglob("*.java"):
             j_main = JavaMain.create(jfp)
@@ -53,7 +53,7 @@ def extractResults():
 # @CmdLine('n')
 def noOutputFixup():
     """Attach "Output: (None)" lines to empty output files"""
-    os.chdir(str(examplePath))
+    os.chdir(str(config.example_dir))
     # test = open("test.txt", 'w')
     for jfp in Path(".").rglob("*.java"):
         if "gui" in jfp.parts or "swt" in jfp.parts:
@@ -100,12 +100,12 @@ def viewAttachedFiles():
 @CmdLine('x')
 def showNulBytesInOutput():
     """Look for NUL bytes in output files`"""
-    for normal in examplePath.rglob("*-output.txt"):
+    for normal in config.example_dir.rglob("*-output.txt"):
         with normal.open() as codeFile:
             if "\0" in codeFile.read():
                 os.system("subl {}".format(normal))
                 print(normal)
-    for errors in examplePath.rglob("*-erroroutput.txt"):
+    for errors in config.example_dir.rglob("*-erroroutput.txt"):
         with errors.open() as codeFile:
             if "\0" in codeFile.read():
                 os.system("subl {}".format(errors))
@@ -123,7 +123,7 @@ def showJavaFiles():
 def blankOutputFiles():
     """Show java files with expected output where there is none"""
     find_output = re.compile(r"/\* Output:(.*)\*/", re.DOTALL)
-    for java in examplePath.rglob("*.java"):
+    for java in config.example_dir.rglob("*.java"):
         with java.open() as codeFile:
             output = find_output.search(codeFile.read())
             if output:
@@ -135,7 +135,7 @@ def blankOutputFiles():
 @CmdLine('u')
 def unexpectedOutput():
     """Show java files with output where none was expected"""
-    for java in examplePath.rglob("*.java"):
+    for java in config.example_dir.rglob("*.java"):
         with java.open() as codeFile:
             if "/* Output: (None) */" in codeFile.read():
                 outfile = java.with_name(java.stem + "-output.txt")
@@ -254,7 +254,7 @@ def stripdates(text):
 @CmdLine('z')
 def test_regexp():
     "testing regular expressions"
-    for jfp in examplePath.rglob("*.java"):
+    for jfp in config.example_dir.rglob("*.java"):
         if "gui" in jfp.parts or "swt" in jfp.parts:
             continue
         if jfp.name in exclude_files:
@@ -293,7 +293,7 @@ def embedded_output(jfp):
 class LineCountDiff:
     """Checks for line count differences"""
     band = 2  # number of lines different before reporting
-    line_count_report = examplePath / "LineCountReport.txt"
+    line_count_report = config.example_dir / "LineCountReport.txt"
 
     def __init__(self):
         if LineCountDiff.line_count_report.exists():
@@ -306,7 +306,7 @@ class LineCountDiff:
         if delta > LineCountDiff.band:
             report = io.StringIO()
             report.write("\n" + "*" * 60)
-            report.write("\n" + ruler(jfp.relative_to(examplePath)))
+            report.write("\n" + ruler(jfp.relative_to(config.example_dir)))
             report.write("line count difference: {}\n".format(delta))
             report.write(ruler("Attached"))
             report.write(embedded)
@@ -321,7 +321,7 @@ floatnum = re.compile(r'[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?')
 
 class WordContentDiff:
     """Checks for differences in the content"""
-    content_report = examplePath / "ContentReport.txt"
+    content_report = config.example_dir / "ContentReport.txt"
 
     def __init__(self):
         if WordContentDiff.content_report.exists():
@@ -338,7 +338,7 @@ class WordContentDiff:
         if len(delta) > 1:
             report = io.StringIO()
             report.write("\n" + "*" * 60)
-            report.write("\n" + ruler(jfp.relative_to(examplePath)))
+            report.write("\n" + ruler(jfp.relative_to(config.example_dir)))
             for d in delta:
                 report.write(" {} ".format(d))
             report.write("\n" + ruler("Attached"))
@@ -362,11 +362,11 @@ def compare_output():
     reports = list()
     line_count_diff = LineCountDiff()
     word_content_diff = WordContentDiff()
-    output_comparison = examplePath / "OutputComparisons.txt"
+    output_comparison = config.example_dir / "OutputComparisons.txt"
     # This is support to make it easy to add to exclude_files:
-    compare_exclusions = examplePath / "CompareExclusions.txt"
+    compare_exclusions = config.example_dir / "CompareExclusions.txt"
 
-    for jfp in examplePath.rglob("*.java"):
+    for jfp in config.example_dir.rglob("*.java"):
         if "gui" in jfp.parts or "swt" in jfp.parts:
             continue
         if jfp.name in exclude_files:
@@ -386,17 +386,17 @@ def compare_output():
         comp = SequenceMatcher(None, emb_stripped, gen_stripped)
         ratio = comp.ratio()
         if ratio < ratio_target:
-            print(jfp.relative_to(examplePath))
+            print(jfp.relative_to(config.example_dir))
             print("ratio: {}\n".format(ratio))
             report = io.StringIO()
             report.write("\n" + "*" * 60)
-            report.write("\n" + ruler(jfp.relative_to(examplePath)))
+            report.write("\n" + ruler(jfp.relative_to(config.example_dir)))
             report.write("ratio: {}\n".format(ratio))
             report.write(ruler("Attached"))
             report.write(embedded)
             report.write("\n" + ruler("Generated"))
             report.write(generated)
-            result = (ratio, report.getvalue(), str(jfp.relative_to(examplePath)))
+            result = (ratio, report.getvalue(), str(jfp.relative_to(config.example_dir)))
             reports.append(result)
 
     reports = sorted(reports)
@@ -422,7 +422,7 @@ def compare_output():
 @CmdLine('a')
 def attachFiles():
     """Attach standard and error output to all files"""
-    os.chdir(str(examplePath))
+    os.chdir(str(config.example_dir))
     test = open("AllFilesWithOutput.txt", 'w')
     longOutput = open("LongOutput.txt", 'w')
     for jfp in Path(".").rglob("*.java"):
@@ -448,7 +448,7 @@ if __name__ == '__main__':
 # def allOutputTagLines():
 #     """Shows all lines starting with /*"""
 #     allvariations = set()
-#     os.chdir(str(examplePath))
+#     os.chdir(str(config.example_dir))
 #     for jfp in Path(".").rglob("*.java"):
 #         with jfp.open() as code:
 #             for line in code.readlines():
@@ -471,7 +471,7 @@ if __name__ == '__main__':
 #         word = word.split('[')[0]
 #         return word.strip()
 
-#     os.chdir(str(examplePath / ".."))
+#     os.chdir(str(config.example_dir / ".."))
 #     spelldict = SortedSet()
 #     with codecs.open(str(Path("OnJava.htm")),'r', encoding='utf-8', errors='ignore') as book:
 #         soup = BeautifulSoup(book.read())
