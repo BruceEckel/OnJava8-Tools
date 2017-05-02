@@ -2,8 +2,9 @@
 """
 Replace example files in onjava-assembled.md
 """
-import config
 import sys
+from pathlib import Path
+import config
 
 
 def insert_code_in_book(code):
@@ -23,7 +24,8 @@ def insert_code_in_book(code):
         print("Couldn't find {}".format(header[3:]))
         sys.exit(1)
     book[start:end] = codelines
-    config.combined_markdown.write_text(("\n".join(book)).strip(), encoding="utf8")
+    config.combined_markdown.write_text(
+        ("\n".join(book)).strip(), encoding="utf8")
 
 
 def insert_new_version_of_example(javafilepath):
