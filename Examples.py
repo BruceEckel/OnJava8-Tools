@@ -16,11 +16,12 @@ import config
 logging.basicConfig(filename=__file__.split('.')[0] + ".log", filemode='w', level=logging.DEBUG)
 
 tools_to_copy = [Path(sys.path[0]) / f for f in [ # For Development
-    "_verify_output.py",
+    "verify_output.py",
     "_update_extracted_example_output.py", 
     "_output_file_check.py",
     "_refresh_examples.bat",
     "_bracket_tags.py",
+    "_capture_gradle.bat",
     # "ShowFindbugs.py",
     # "check.bat",
     # "gg.bat", # Short for gradlew
