@@ -17,7 +17,9 @@ logging.basicConfig(filename=__file__.split('.')[0] + ".log", filemode='w', leve
 
 tools_to_copy = [Path(sys.path[0]) / f for f in [ # For Development
     "verify_output.py",
-    "_update_extracted_example_output.py", 
+    "config.py",
+    "_linewidth.py",
+    "_update_extracted_example_output.py",
     "_output_file_check.py",
     "_refresh_examples.bat",
     "_bracket_tags.py",

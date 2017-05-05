@@ -1,8 +1,9 @@
 """
 Common program configuration variables for "On Java" tools
 """
-from pathlib import Path
+import os
 import sys
+from pathlib import Path
 
 base_name = "BruceEckelOnJava8"
 epub_file_name = base_name + ".epub"
@@ -10,7 +11,11 @@ epub_sample_file_name = base_name + "Sample.epub"
 
 code_width = 58
 
-tools_dir = Path(sys.path[0])
+try:
+    tools_dir = Path(os.environ['ONJAVA_TOOLS'])
+except:
+    print("Error: need to set ONJAVA_TOOLS")
+    sys.exit(1)
 rootPath = tools_dir.parent / "on-java"
 
 markdown_dir = rootPath / "Markdown"
