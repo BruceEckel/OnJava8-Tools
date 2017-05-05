@@ -16,8 +16,8 @@ import config
 logging.basicConfig(filename=__file__.split('.')[0] + ".log", filemode='w', level=logging.DEBUG)
 
 tools_to_copy = [Path(sys.path[0]) / f for f in [ # For Development
-    "verify_output.py",
-    "config.py",
+    "verify_output.py", # This one goes to the distributed example repo
+    "config.py", # This and all underscore-prefixed files are ignored in the distributed example repo
     "_linewidth.py",
     "_update_extracted_example_output.py",
     "_output_file_check.py",
