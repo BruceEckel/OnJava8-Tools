@@ -13,18 +13,27 @@ assert config.build_dir.exists()
 assert config.combined_markdown.exists(), "RUN b -s first"
 
 
-@CmdLine("o")
-def show_generated_output_too_wide():
-    "Show all lines that exceed config.code_width in the gradlw-run .out files"
-    for outfile in config.example_dir.rglob("*.out"):
+def checkwidth(extension):
+    for outfile in config.example_dir.rglob(extension):
         for n, line in enumerate(outfile.read_text(encoding="utf-8").splitlines()):
             if len(line) > config.code_width:
                 print("{}({}) [{}]: {}".format(outfile.name, n, len(line), line))
 
+@CmdLine("o")
+def show_generated_output_too_wide():
+    "Show all lines that exceed config.code_width in the gradlw-run .out files"
+    checkwidth("*.out")
+
+
+@CmdLine("p")
+def show_formatted_output_too_wide():
+    "Show all lines that exceed config.code_width in the .p1 files"
+    checkwidth("*.p1")
+
 
 @CmdLine("a")
 def show_all_too_wide():
-    "Show all lines that exceed config.code_width"
+    "Show all lines in combined_markdown that exceed config.code_width"
     in_listing = False
     for n, line in enumerate(config.combined_markdown.read_text(encoding="utf-8").splitlines()):
         if line.startswith("```java"):
@@ -39,7 +48,7 @@ def show_all_too_wide():
 
 @CmdLine("e")
 def check_listing_widths():
-    "Open Sublime at first instance that exceeds config.code_width"
+    "Open Sublime at first instance of combined_markdown that exceeds config.code_width"
     in_listing = False
     for n, line in enumerate(config.combined_markdown.read_text(encoding="utf-8").splitlines()):
         if line.startswith("```java"):
@@ -63,7 +72,7 @@ def check_listing_widths():
 def fill_to_width(text):
     result = ""
     for line in text.splitlines():
-        result += textwrap.fill(line, width=config.code_width) + "\n"
+        result += textwrap.fill(line, width=config.code_width - 1) + "\n"
     return result.strip()
 
 def adjust_lines(text):
@@ -87,7 +96,7 @@ def adjust_lines(text):
 
 @CmdLine("f")
 def reformat_runoutput_files():
-    "Produce .p1 files that are formatted output"
+    "Produce formatted .p1 files from the .out files produced by gradlew run"
     out_files = list(Path(".").rglob("*.out"))
     if len(out_files) < 10:
         print("Error: found less than 10 .out files")
