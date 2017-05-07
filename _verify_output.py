@@ -6,16 +6,16 @@
 Intended to be copied into the ExtractedExamples directory,
 thus it doesn't use config.py
 '''
-from pathlib import Path
-import textwrap
+import os
 import re
 import sys
-import os
 import textwrap
 from collections import defaultdict
-WIDTH = 59 # Max line width
+from pathlib import Path
+import config
 
 #################### Phase 1: Basic formatting #####################
+
 
 def adjust_lines(text):
     text = text.replace("\0", "NUL")
@@ -35,11 +35,13 @@ def adjust_lines(text):
     else:
         return text
 
+
 def fill_to_width(text):
     result = ""
     for line in text.splitlines():
-        result += textwrap.fill(line, width = WIDTH) + "\n"
+        result += textwrap.fill(line, width=config.code_width - 1) + "\n"
     return result.strip()
+
 
 def phase1():
     """
@@ -64,50 +66,65 @@ def phase1():
 
 def exact_match(text): return text
 
+
 memlocation = re.compile("@[0-9a-z]{5,7}")
+
 
 def ignore_memory_addresses(text):
     return memlocation.sub("", text)
+
 
 datestamp1 = re.compile(
     "(?:[MTWFS][a-z]{2} ){0,1}[JFMASOND][a-z]{2} \d{1,2} \d{2}:\d{2}:\d{2} [A-Z]{3} \d{4}")
 datestamp2 = re.compile(
     "[JFMASOND][a-z]{2} \d{1,2}, \d{4} \d{1,2}:\d{1,2}:\d{1,2} (:?AM|PM)")
 
+
 def ignore_dates(text):
-    for pat in [ datestamp1, datestamp2 ]:
+    for pat in [datestamp1, datestamp2]:
         text = pat.sub("", text)
     return text
+
 
 def ignore_digits(input_text):
     return re.sub("-?\d", "", input_text)
 
+
 def sort_lines(input_text):
     return "\n".join(sorted(input_text.splitlines())).strip()
 
+
 def sort_words(input_text):
     return "\n".join(sorted(input_text.split())).strip()
+
 
 def unique_lines(input_text):
     return "\n".join(sorted(list(set(input_text.splitlines()))))
 
 # Fairly extreme but will still reveal significant changes
+
+
 def unique_words(input_text):
     return "\n".join(sorted(set(input_text.split())))
 
+
 # Fairly extreme but will still reveal significant changes
 word_only = re.compile("[A-Za-z]+")
+
+
 def words_only(input_text):
     return "\n".join(
         sorted([w for w in input_text.split()
                 if word_only.fullmatch(w)]))
 
+
 def no_match(input_text): return True
+
 
 # Chain of responsibility:
 strategies = [
     # Filter                  # Retain result
-                              # for rest of chain
+    # for rest of chain
     (exact_match,               False),
     (ignore_dates,              True),
     (ignore_memory_addresses,   True),
@@ -121,7 +138,7 @@ strategies = [
 ]
 
 
-class Validator(defaultdict): # Map of lists
+class Validator(defaultdict):  # Map of lists
     compare_output = Path(".") / "compare_output.bat"
 
     def __init__(self):
@@ -140,7 +157,8 @@ class Validator(defaultdict): # Map of lists
             if filtered_embedded_output == filtered_generated_output:
                 strat_name = strategy.__name__
                 self[strat_name].append(str(javafile))
-                if strat_name is "exact_match": return
+                if strat_name is "exact_match":
+                    return
                 tfile = javafile.with_suffix("." + strat_name)
                 with Path(strat_name + ".bat").open('a') as strat_batch:
                     strat_batch.write("subl " + str(tfile) + "\n")
@@ -170,7 +188,7 @@ class Validator(defaultdict): # Map of lists
 
 
 if __name__ == '__main__':
-    phase1() # Generates '.p1' files
+    phase1()  # Generates '.p1' files
     find_output = re.compile(r"/\* (Output:.*)\*/", re.DOTALL)
     validator = Validator()
     for outfile in Path(".").rglob("*.p1"):
@@ -183,7 +201,8 @@ if __name__ == '__main__':
             print(str(outfile) + " has no /* Output:")
             sys.exit(1)
         validator.find_output_match(javafile,
-            find_output.search(javatext).group(0).strip(),
-            outfile.read_text().strip())
+                                    find_output.search(
+                                        javatext).group(0).strip(),
+                                    outfile.read_text().strip())
     validator.display_results()
     os.system("more verified_output.txt")

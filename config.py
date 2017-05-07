@@ -9,7 +9,7 @@ base_name = "BruceEckelOnJava8"
 epub_file_name = base_name + ".epub"
 epub_sample_file_name = base_name + "Sample.epub"
 
-code_width = 58
+code_width = 57
 
 try:
     tools_dir = Path(os.environ['ONJAVA_TOOLS'])
