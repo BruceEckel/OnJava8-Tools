@@ -13,10 +13,22 @@ from betools import CmdLine
 import config
 
 assert config.build_dir.exists()
-assert config.combined_markdown.exists(), "RUN b -s first"
+if not config.combined_markdown.exists():
+    print("Error: cannot find {}".format(config.combined_markdown))
+    print("RUN b -s first")
+    sys.exit(1)
+
+
+def check_for_existence(extension):
+    files_with_extension = list(Path(".").rglob(extension))
+    if len(files_with_extension) < 1:
+        print("Error: no " + extension + " files found")
+        sys.exit(1)
+    return files_with_extension
 
 
 def checkwidth(extension):
+    check_for_existence(extension)
     for outfile in config.example_dir.rglob(extension):
         for n, line in enumerate(outfile.read_text(encoding="utf-8").splitlines()):
             if len(line) > config.code_width:
@@ -103,11 +115,7 @@ def adjust_lines(text):
 @CmdLine("f")
 def reformat_runoutput_files():
     "Produce formatted .p1 files from the .out files produced by gradlew run"
-    out_files = list(Path(".").rglob("*.out"))
-    if len(out_files) < 10:
-        print("Error: found less than 10 .out files")
-        sys.exit(1)
-    for outfile in out_files:
+    for outfile in check_for_existence("*.out"):
         out_text = adjust_lines(outfile.read_text())
         phase_1 = outfile.with_suffix(".p1")
         with phase_1.open('w') as phs1:
@@ -149,17 +157,17 @@ def update_output_in_java_files():
     # if len(sys.argv) > 1:
     #     update_file(Path(sys.argv[1]))
     # else:
-    p1_files = list(Path(".").rglob("*.p1"))
-    if len(p1_files) < 10:
-        print("Error: found less than 10 .p1 files")
-        sys.exit(1)
-    for outfile in p1_files:  # Note p1 files have been line-wrapped
+    # Note p1 files have been line-wrapped
+    for outfile in check_for_existence("*.p1"):
         print(outfile)
         update_file(outfile)
+
 
 """
 Final Step: Insert the examples back into combined_markdown
 """
+
+
 def insert_code_in_book(code):
     codelines = code.splitlines()
     header = codelines[0]
@@ -182,9 +190,6 @@ def insert_code_in_book(code):
 
 
 def insert_new_version_of_example(javafilepath):
-    if not config.combined_markdown.exists():
-        print("Error: cannot find {}".format(config.combined_markdown))
-        sys.exit(1)
     if not javafilepath.exists():
         print("Error: cannot find {}".format(javafilepath))
         sys.exit(1)
@@ -210,6 +215,7 @@ def fix_up_and_include_all_new_output():
     Performs all tasks to take new output from 'gradlew run' to 
     incorporation into combined_markdown file
     """
+    check_for_existence("*.out")
 
 
 if __name__ == '__main__':
