@@ -59,12 +59,12 @@ def find_links():
     for md in config.markdown_dir.glob("[0-9][0-9]_*.md"):
         cleaned_doc += remove_code(md.read_text(encoding="utf-8")) + "\n"
     raw = re.findall("[^^`]\[.*?\].", cleaned_doc, re.DOTALL)
-    links = [link.strip()[:] for link in raw 
-        if not link.endswith("(") 
-        and not link.endswith("*")
-        and not link.endswith("`")
-        and not link.startswith("\\")
-    ]
+    links = [link.strip()[:] for link in raw
+             if not link.endswith("(")
+             and not link.endswith("*")
+             and not link.endswith("`")
+             and not link.startswith("\\")
+             ]
     links2 = []
     for link in links:
         link = link.strip()
@@ -77,7 +77,6 @@ def find_links():
     return [" ".join(link.split()) for link in links2]
 
 
-
 @CmdLine("c")
 def check_links_against_headings():
     "check [Cross Links] to ensure they all match a heading"
@@ -86,6 +85,18 @@ def check_links_against_headings():
     for link in link_text:
         if link not in pure:
             print(link)
+
+
+@CmdLine('d')
+def check_for_leading_or_trailing_dashes():
+    "Make sure there are no lines with broken hyphenation"
+    print("Checking for leading or trailing dashes")
+    book = remove_code(Path(config.combined_markdown).read_text(encoding="utf8")).splitlines()
+    for n, line in enumerate(book):
+        if line.startswith("-") or line.rstrip().endswith("-"):
+            if re.match("^-{1,2}[^- ]+", line) or re.search("[^-]+-{1,2}$", line):
+                print("[{}]: {}".format(n, line))
+                # os.system("subl {}:{}".format(config.combined_markdown, n))
 
 
 if __name__ == '__main__':
