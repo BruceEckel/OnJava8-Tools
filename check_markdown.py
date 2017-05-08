@@ -18,7 +18,7 @@ def find_headings():
                 marked_headings.append(line)
                 pure_headings.append(line.split(maxsplit=1)[1])
                 continue
-            if re.match("={6,}", line) or re.match("-{6,}", line):
+            if re.match("={5,}", line) or re.match("-{5,}", line):
                 if re.search("\d+", lines[n - 1]):
                     continue
                 if not re.search("\w+", lines[n - 1]):
