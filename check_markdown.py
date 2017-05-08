@@ -14,7 +14,7 @@ def find_headings():
     for md in config.markdown_dir.glob("[0-9][0-9]_*.md"):
         lines = md.read_text(encoding="utf-8").splitlines()
         for n, line in enumerate(lines):
-            if line.startswith("##"): # Must be at least two
+            if line.startswith("##"):  # Must be at least two
                 marked_headings.append(line)
                 pure_headings.append(line.split(maxsplit=1)[1])
                 continue
@@ -27,8 +27,9 @@ def find_headings():
                 marked_headings.append(line)
                 pure_headings.append(lines[n - 1])
     return pure_headings, marked_headings
-                # if len(line) != len(lines[n - 1]):
-                #     os.system("subl {}:{}".format(md, n))
+    # if len(line) != len(lines[n - 1]):
+    #     os.system("subl {}:{}".format(md, n))
+
 
 @CmdLine("s")
 def show_all_headings():
@@ -36,6 +37,55 @@ def show_all_headings():
     pure, marked = find_headings()
     for p in pure:
         print(p)
+
+
+def remove_code(doc):
+    cleaned = []
+    inside_code = False
+    for line in doc.splitlines():
+        if inside_code:
+            if line.startswith("```"):
+                inside_code = False
+            continue
+        if line.startswith("```"):
+            inside_code = True
+            continue
+        cleaned.append(line)
+    return "\n".join(cleaned)
+
+
+def find_links():
+    cleaned_doc = ""
+    for md in config.markdown_dir.glob("[0-9][0-9]_*.md"):
+        cleaned_doc += remove_code(md.read_text(encoding="utf-8")) + "\n"
+    raw = re.findall("[^^`]\[.*?\].", cleaned_doc, re.DOTALL)
+    links = [link.strip()[:] for link in raw 
+        if not link.endswith("(") 
+        and not link.endswith("*")
+        and not link.endswith("`")
+        and not link.startswith("\\")
+    ]
+    links2 = []
+    for link in links:
+        link = link.strip()
+        if link.endswith("]"):
+            links2.append(link)
+        else:
+            links2.append(link[:-1])
+    links2 = [link for link in links2 if not link.endswith("]]")]
+    links2 = [link for link in links2 if not "[]" in link]
+    return [" ".join(link.split()) for link in links2]
+
+
+
+@CmdLine("c")
+def check_links_against_headings():
+    "check [Cross Links] to ensure they all match a heading"
+    link_text = [link[1:-1] for link in find_links()]
+    pure, marked = find_headings()
+    for link in link_text:
+        if link not in pure:
+            print(link)
 
 
 if __name__ == '__main__':
