@@ -32,16 +32,30 @@ def find_headings():
                 marked_headings.append(line)
                 pure_headings.append(lines[n - 1])
     return pure_headings, marked_headings
-    # if len(line) != len(lines[n - 1]):
-    #     os.system("subl {}:{}".format(md, n))
 
 
 @CmdLine("s")
 def show_all_headings():
     "Display all markdown headings in book"
     pure, marked = find_headings()
-    for p in pure:
-        print(p)
+    for m in marked:
+        print(m)
+
+
+@CmdLine("c")
+def check_underlined_section_heads():
+    "Check lengths of '-' and '=' used to mark section heads"
+    pure, marked = find_headings()
+    marked = [good for good in marked if not good.startswith("#")]
+    for name, underline in zip(marked[::2], marked[1::2]):
+        if '-' not in underline and '=' not in underline:
+            print("Error in underline: {}".format(underline))
+            sys.exit(1)
+        # print("name: {}\nunderline:{}".format(name, underline))
+        if len(name) != len(underline):
+            print(name)
+            print(underline)
+
 
 
 def remove_code(doc):
@@ -82,7 +96,7 @@ def find_links():
     return [" ".join(link.split()) for link in links2]
 
 
-@CmdLine("c")
+@CmdLine("l")
 def check_links_against_headings():
     "check [Cross Links] to ensure they all match a heading"
     link_text = [link[1:-1] for link in find_links()]
@@ -106,7 +120,7 @@ def check_for_leading_or_trailing_dashes():
                 # os.system("subl {}:{}".format(config.combined_markdown, n))
 
 
-@CmdLine('b')
+@CmdLine('t')
 def find_all_bracket_tags():
     "Find comment tags in Java files"
     look_for = re.compile("^//\s*\{")
@@ -139,6 +153,20 @@ def show_NUL_bytes_in_output():
                 print(errors)
 
 
+@CmdLine('b')
+def blankOutputFiles():
+    """
+    Show java files with expected output where there is none
+    (Not sure if this is working right)
+    """
+    find_output = re.compile(r"/\* Output:(.*)\*/", re.DOTALL)
+    for java in config.example_dir.rglob("*.java"):
+        with java.open() as codeFile:
+            output = find_output.search(codeFile.read())
+            if output:
+                # print(output.group(1))
+                if not output.group(1).strip():
+                    print(java)
 
 
 if __name__ == '__main__':
