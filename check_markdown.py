@@ -1,9 +1,14 @@
+# Various tests to check Pandoc-flavored markdown documents
+# Used in "On Java 8"
 import os
 import re
 import shutil
 import sys
+from collections import Counter
 from pathlib import Path
+
 from betools import CmdLine
+
 import config
 
 
@@ -92,12 +97,48 @@ def check_for_leading_or_trailing_dashes():
     "Make sure there are no lines with broken hyphenation"
     print("Checking for leading or trailing dashes")
     assert config.combined_markdown.exists()
-    book = remove_code(Path(config.combined_markdown).read_text(encoding="utf8")).splitlines()
+    book = remove_code(Path(config.combined_markdown).read_text(
+        encoding="utf8")).splitlines()
     for n, line in enumerate(book):
         if line.startswith("-") or line.rstrip().endswith("-"):
             if re.match("^-{1,2}[^- ]+", line) or re.search("[^-]+-{1,2}$", line):
                 print("[{}]: {}".format(n, line))
                 # os.system("subl {}:{}".format(config.combined_markdown, n))
+
+
+@CmdLine('b')
+def find_all_bracket_tags():
+    "Find comment tags in Java files"
+    look_for = re.compile("^//\s*\{")
+    all = list()
+    for md in config.markdown_dir.glob("[0-9][0-9]_*.md"):
+        lines = md.read_text().splitlines()
+        for n, line in enumerate(lines):
+            if look_for.search(line):
+                all.append(line)
+    for k, v in sorted(Counter(all).items()):
+        print("[{}]\t{}".format(v, k))
+
+
+@CmdLine('x')
+def show_NUL_bytes_in_output():
+    """Look for NUL bytes in output files`"""
+    normals = list(config.example_dir.rglob("*.out"))
+    if len(normals) == 0:
+        print("no *.out files found; execute 'gradlew run' first")
+        sys.exit(1)
+    for normal in normals:
+        with normal.open() as codeFile:
+            if "\0" in codeFile.read():
+                os.system("subl {}".format(normal))
+                print(normal)
+    for errors in config.example_dir.rglob("*.err"):
+        with errors.open() as codeFile:
+            if "\0" in codeFile.read():
+                os.system("subl {}".format(errors))
+                print(errors)
+
+
 
 
 if __name__ == '__main__':
