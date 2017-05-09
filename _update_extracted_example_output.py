@@ -116,6 +116,11 @@ def adjust_lines(text):
 def reformat_runoutput_files():
     "Produce formatted .p1 files from the .out files produced by gradlew run"
     for outfile in check_for_existence("*.out"):
+        java = outfile.with_suffix(".java")
+        if java.exists():
+            if "{VisuallyInspectOutput}" in java.read_text(): # Don't create p1 file
+                print("{} Excluded".format(java.name))
+                continue
         out_text = adjust_lines(outfile.read_text())
         phase_1 = outfile.with_suffix(".p1")
         with phase_1.open('w') as phs1:
@@ -212,7 +217,7 @@ def insert_examples_into_combined_markdown():
 @CmdLine("a")
 def fix_up_and_include_all_new_output():
     """
-    Performs all tasks to take new output from 'gradlew run' to 
+    Performs all tasks to take new output from 'gradlew run' to
     incorporation into combined_markdown file
     """
     check_for_existence("*.out")
