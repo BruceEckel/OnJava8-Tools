@@ -51,6 +51,10 @@ def phase1():
     (3) Add closing '*/'
     """
     for outfile in Path(".").rglob("*.out"):
+        java = outfile.with_suffix(".java")
+        if java.exists():
+            if "{VisuallyInspectOutput}" in java.read_text():
+                continue
         out_text = adjust_lines(outfile.read_text())
         phase_1 = outfile.with_suffix(".p1")
         with phase_1.open('w') as phs1:
