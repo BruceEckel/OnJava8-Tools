@@ -91,6 +91,7 @@ def check_links_against_headings():
 def check_for_leading_or_trailing_dashes():
     "Make sure there are no lines with broken hyphenation"
     print("Checking for leading or trailing dashes")
+    assert config.combined_markdown.exists()
     book = remove_code(Path(config.combined_markdown).read_text(encoding="utf8")).splitlines()
     for n, line in enumerate(book):
         if line.startswith("-") or line.rstrip().endswith("-"):
