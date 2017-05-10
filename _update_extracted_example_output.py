@@ -2,7 +2,7 @@
 # Requires Python 3.5
 # Updates generated output into extracted Java programs in "On Java 8"
 # Also provides tools to reformat the .out files produced by 'gradlew run'
-# NOTE: Incorported output comes from .p1 files, not from .out files
+# NOTE: Incorporated output comes from .p1 files, not from .out files
 import os
 import sys
 import textwrap
@@ -118,7 +118,7 @@ def reformat_runoutput_files():
     for outfile in check_for_existence("*.out"):
         java = outfile.with_suffix(".java")
         if java.exists():
-            if "{VisuallyInspectOutput}" in java.read_text(): # Don't create p1 file
+            if "{VisuallyInspectOutput}" in java.read_text():  # Don't create p1 file
                 print("{} Excluded".format(java.name))
                 continue
         out_text = adjust_lines(outfile.read_text())
@@ -220,7 +220,9 @@ def fix_up_and_include_all_new_output():
     Performs all tasks to take new output from 'gradlew run' to
     incorporation into combined_markdown file
     """
-    check_for_existence("*.out")
+    reformat_runoutput_files()
+    update_output_in_java_files()
+    insert_examples_into_combined_markdown()
 
 
 if __name__ == '__main__':

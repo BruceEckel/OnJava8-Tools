@@ -2,68 +2,15 @@
 # Requires Python 3.5
 # Validates output from executable Java programs in "On Java 8."
 # Use chain of responsibility to successively try strategies until one matches
-'''
-Intended to be copied into the ExtractedExamples directory,
-thus it doesn't use config.py
-'''
 import os
 import re
 import sys
 import textwrap
 from collections import defaultdict
 from pathlib import Path
+
+import _update_extracted_example_output
 import config
-
-#################### Phase 1: Basic formatting #####################
-
-
-def adjust_lines(text):
-    text = text.replace("\0", "NUL")
-    lines = text.splitlines()
-    slug = lines[0]
-    if "(First and Last " in slug:
-        num_of_lines = int(slug.split()[5])
-        adjusted = lines[:num_of_lines + 1] +\
-            ["...________...________...________...________..."] +\
-            lines[-num_of_lines:]
-        return "\n".join(adjusted)
-    elif "(First " in slug:
-        num_of_lines = int(slug.split()[3])
-        adjusted = lines[:num_of_lines + 1] +\
-            ["                  ..."]
-        return "\n".join(adjusted)
-    else:
-        return text
-
-
-def fill_to_width(text):
-    result = ""
-    for line in text.splitlines():
-        result += textwrap.fill(line, width=config.code_width - 1) + "\n"
-    return result.strip()
-
-
-def phase1():
-    """
-    (0) Do first/last lines before formatting to width
-    (1) Combine output and error (if present) files
-    (2) Format all output to width limit
-    (3) Add closing '*/'
-    """
-    for outfile in Path(".").rglob("*.out"):
-        java = outfile.with_suffix(".java")
-        if java.exists():
-            if "{VisuallyInspectOutput}" in java.read_text():
-                continue
-        out_text = adjust_lines(outfile.read_text())
-        phase_1 = outfile.with_suffix(".p1")
-        with phase_1.open('w') as phs1:
-            phs1.write(fill_to_width(out_text) + "\n")
-            errfile = outfile.with_suffix(".err")
-            if errfile.exists():
-                phs1.write("___[ Error Output ]___\n")
-                phs1.write(fill_to_width(errfile.read_text()) + "\n")
-            phs1.write("*/\n")
 
 
 ########### Chain of Responsibility Match Finder #######################
@@ -105,14 +52,13 @@ def sort_words(input_text):
 def unique_lines(input_text):
     return "\n".join(sorted(list(set(input_text.splitlines()))))
 
-# Fairly extreme but will still reveal significant changes
 
-
+# Fairly extreme but will still reveal significant changes:
 def unique_words(input_text):
     return "\n".join(sorted(set(input_text.split())))
 
 
-# Fairly extreme but will still reveal significant changes
+# Fairly extreme but will still reveal significant changes:
 word_only = re.compile("[A-Za-z]+")
 
 
@@ -128,7 +74,7 @@ def no_match(input_text): return True
 # Chain of responsibility:
 strategies = [
     # Filter                  # Retain result
-    # for rest of chain
+                              # for rest of chain
     (exact_match,               False),
     (ignore_dates,              True),
     (ignore_memory_addresses,   True),
@@ -192,7 +138,8 @@ class Validator(defaultdict):  # Map of lists
 
 
 if __name__ == '__main__':
-    phase1()  # Generates '.p1' files
+    # Generate '.p1' files:
+    _update_extracted_example_output.reformat_runoutput_files()
     find_output = re.compile(r"/\* (Output:.*)\*/", re.DOTALL)
     validator = Validator()
     for outfile in Path(".").rglob("*.p1"):
