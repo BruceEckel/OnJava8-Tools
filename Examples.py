@@ -13,20 +13,18 @@ from betools import CmdLine
 
 import config
 
-logging.basicConfig(filename=__file__.split('.')[0] + ".log", filemode='w', level=logging.DEBUG)
+logging.basicConfig(filename=__file__.split(
+    '.')[0] + ".log", filemode='w', level=logging.DEBUG)
 
-tools_to_copy = [Path(sys.path[0]) / f for f in [ # For Development
-    "config.py", # This and all underscore-prefixed files are ignored in the distributed example repo
+# For Development:
+tools_to_copy = [Path(sys.path[0]) / f for f in [
     "_check_markdown.bat",
     "_output_file_check.bat",
-    "_verify_output.py",
-    "_update_extracted_example_output.py",
+    "_verify_output.bat",
+    "_update_extracted_example_output.bat",
     "_capture_gradle.bat",
-    # "_refresh_examples.bat",
-    # "ShowFindbugs.py",
-    # "check.bat",
+    "chkstyle.bat",  # Run checkstyle, capturing output
     # "gg.bat", # Short for gradlew
-    "chkstyle.bat",  # clean and run checkstyle, capturing output
 ]]
 
 
@@ -121,12 +119,6 @@ def clean():
         print("Old path removal failed")
         raise RuntimeError()
 
-# go_bat = """\
-# gradlew --parallel --daemon run > output.txt 2> errors.txt
-# START /min "C:\Program Files\Windows Media Player\wmplayer.exe" %windir%\media\Alarm07.wav
-# rem find . -size 0 -type f
-# """
-
 
 @CmdLine('e')
 def extractAndCopyBuildFiles():
@@ -134,9 +126,6 @@ def extractAndCopyBuildFiles():
     clean()
     extractExamples()
     copyGradleFiles()
-    # os.chdir(str(config.example_dir))
-    # with open("go.bat", 'w') as run:
-    #     run.write(go_bat)
 
 
 if __name__ == '__main__':
