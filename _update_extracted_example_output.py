@@ -19,16 +19,8 @@ if not config.combined_markdown.exists():
     sys.exit(1)
 
 
-def check_for_existence(extension):
-    files_with_extension = list(Path(".").rglob(extension))
-    if len(files_with_extension) < 1:
-        print("Error: no " + extension + " files found")
-        sys.exit(1)
-    return files_with_extension
-
-
 def checkwidth(extension):
-    check_for_existence(extension)
+    config.check_for_existence(extension)
     for outfile in config.example_dir.rglob(extension):
         for n, line in enumerate(outfile.read_text(encoding="utf-8").splitlines()):
             if len(line) > config.code_width:
@@ -115,7 +107,7 @@ def adjust_lines(text):
 @CmdLine("f")
 def reformat_runoutput_files():
     "Produce formatted .p1 files from the .out files produced by gradlew run"
-    for outfile in check_for_existence("*.out"):
+    for outfile in config.check_for_existence("*.out"):
         java = outfile.with_suffix(".java")
         if java.exists():
             if "{VisuallyInspectOutput}" in java.read_text():  # Don't create p1 file
@@ -163,7 +155,7 @@ def update_output_in_java_files():
     #     update_file(Path(sys.argv[1]))
     # else:
     # Note p1 files have been line-wrapped
-    for outfile in check_for_existence("*.p1"):
+    for outfile in config.check_for_existence("*.p1"):
         print(outfile)
         update_file(outfile)
 

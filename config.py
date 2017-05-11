@@ -47,3 +47,11 @@ reformat_dir = rootPath / "Reformatted"
 sample_book_dir = rootPath / "SampleBook"
 sample_book_original_dir = rootPath / "SampleBook" / "Original"
 combined_markdown_sample = sample_book_dir / "onjava-assembled.md"
+
+
+def check_for_existence(extension):
+    files_with_extension = list(example_dir.rglob(extension))
+    if len(files_with_extension) < 1:
+        print("Error: no " + extension + " files found")
+        sys.exit(1)
+    return files_with_extension
