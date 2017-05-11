@@ -65,9 +65,6 @@ def discover_unincluded_output():
                 print("\nNo /* Output: {} for {}".format(java_rel, outfile_rel))
         print("{} {} files".format(len(outfiles), extension))
 
-    discover(".out", "/* Output:")
-    discover(".err", "___[ Error Output ]___")
-
     def discover2(pattern, extension):
         java_files = list(config.example_dir.rglob("*.java"))
         for java in java_files:
@@ -77,7 +74,11 @@ def discover_unincluded_output():
             if pattern in java.read_text():
                 if not outfile.exists():
                     print("\nNo {} for {}".format(outfile_rel, java_rel))
+                    os.system("subl {}".format(java))
                     continue
+
+    discover(".out", "/* Output:")
+    discover(".err", "___[ Error Output ]___")
 
     discover2("/* Output:", ".out")
     discover2("___[ Error Output ]___", ".err")
