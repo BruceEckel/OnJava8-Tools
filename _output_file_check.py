@@ -45,38 +45,42 @@ def edit_unmatched_error_output():
         os.system("subl {}".format(java))
 
 
+def discover(extension, pattern):
+    outfiles = config.check_for_existence("*" + extension)
+    for outfile in outfiles:
+        java = outfile.with_suffix(".java")
+        java_rel = java.relative_to(config.example_dir)
+        outfile_rel = outfile.relative_to(config.example_dir)
+        print(".", end="")
+        if not java.exists():
+            print("\nNo {} for {}".format(java_rel, outfile_rel))
+            continue
+        text = java.read_text()
+        if pattern not in text and "// {ValidateByHand}" not in text:
+            print("\nNo /* Output: {} for {}".format(java_rel, outfile_rel))
+    print("{} {} files".format(len(outfiles), extension))
+
+
+def discover2(pattern, extension, edit=False):
+    java_files = list(config.example_dir.rglob("*.java"))
+    for java in java_files:
+        java_rel = java.relative_to(config.example_dir)
+        outfile = java.with_suffix(extension)
+        outfile_rel = outfile.relative_to(config.example_dir)
+        text = java.read_text()
+        if pattern in text and "// {ValidateByHand}" not in text:
+            if not outfile.exists():
+                print("\nNo {} for {}".format(outfile_rel, java_rel))
+                if edit:
+                    os.system("subl {}".format(java))
+                continue
+
 @CmdLine("d")
 def discover_unincluded_output():
     """
     Discover .out files and/or .err files that are not included
-    in their respective .java files
+    in their respective .java files, and vice-versa.
     """
-    def discover(extension, pattern):
-        outfiles = config.check_for_existence("*" + extension)
-        for outfile in outfiles:
-            java = outfile.with_suffix(".java")
-            java_rel = java.relative_to(config.example_dir)
-            outfile_rel = outfile.relative_to(config.example_dir)
-            print(".", end="")
-            if not java.exists():
-                print("\nNo {} for {}".format(java_rel, outfile_rel))
-                continue
-            if pattern not in java.read_text():
-                print("\nNo /* Output: {} for {}".format(java_rel, outfile_rel))
-        print("{} {} files".format(len(outfiles), extension))
-
-    def discover2(pattern, extension):
-        java_files = list(config.example_dir.rglob("*.java"))
-        for java in java_files:
-            java_rel = java.relative_to(config.example_dir)
-            outfile = java.with_suffix(extension)
-            outfile_rel = outfile.relative_to(config.example_dir)
-            if pattern in java.read_text():
-                if not outfile.exists():
-                    print("\nNo {} for {}".format(outfile_rel, java_rel))
-                    os.system("subl {}".format(java))
-                    continue
-
     discover(".out", "/* Output:")
     discover(".err", "___[ Error Output ]___")
 
@@ -84,6 +88,14 @@ def discover_unincluded_output():
     discover2("___[ Error Output ]___", ".err")
 
 
+@CmdLine("u")
+def edit_unincluded_output():
+    """
+    Edit .out files and/or .err files that are not included
+    in their respective .java files, and vice-versa.
+    """
+    discover2("/* Output:", ".out", True)
+    discover2("___[ Error Output ]___", ".err", True)
 
 
 @CmdLine("o")
@@ -100,6 +112,36 @@ def show_comment_output_tag_lines():
             print(str(md.relative_to(config.example_dir)))
             print(output_ln)
     pprint.pprint(output_lines)
+
+
+def validate_by_hand_java_files():
+    """
+    All Java files containing {ValidateByHand}
+    """
+    result = []
+    for java in config.example_dir.rglob("*.java"):
+        if "{ValidateByHand}" in java.read_text():
+            result.append(java)
+    return result
+
+
+@CmdLine("v")
+def show_all_validate_by_hand_java_files():
+    """
+    Display all Java files containing {ValidateByHand}
+    """
+    for java in validate_by_hand_java_files():
+        java_rel = java.relative_to(config.example_dir)
+        print("{}".format(java_rel))
+
+
+@CmdLine("x")
+def edit_all_validate_by_hand_java_files():
+    """
+    Open all Java files containing {ValidateByHand} in Sublime
+    """
+    for java in validate_by_hand_java_files():
+        os.system("subl {}".format(java))
 
 
 if __name__ == '__main__':

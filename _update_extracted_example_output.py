@@ -5,12 +5,12 @@
 # NOTE: Incorporated output comes from .p1 files, not from .out files
 import os
 import sys
-import textwrap
 from pathlib import Path
 
 from betools import CmdLine
 
 import config
+
 
 assert config.build_dir.exists()
 if not config.combined_markdown.exists():
@@ -72,56 +72,10 @@ def check_listing_widths():
             return
 
 
-# Format output:
-# (0) Do first/last lines before formatting to width
-# (1) Combine output and error (if present) files
-# (2) Format all output to width limit
-# (3) Add closing '*/'
-
-def fill_to_width(text):
-    result = ""
-    for line in text.splitlines():
-        result += textwrap.fill(line, width=config.code_width - 1) + "\n"
-    return result.strip()
-
-
-def adjust_lines(text):
-    text = text.replace("\0", "NUL")
-    lines = text.splitlines()
-    slug = lines[0]
-    if "(First and Last " in slug:
-        num_of_lines = int(slug.split()[5])
-        adjusted = lines[:num_of_lines + 1] +\
-            ["...________...________...________...________..."] +\
-            lines[-num_of_lines:]
-        return "\n".join(adjusted)
-    elif "(First " in slug:
-        num_of_lines = int(slug.split()[3])
-        adjusted = lines[:num_of_lines + 1] +\
-            ["                  ..."]
-        return "\n".join(adjusted)
-    else:
-        return text
-
-
 @CmdLine("f")
-def reformat_runoutput_files():
+def format_runoutput_files():
     "Produce formatted .p1 files from the .out files produced by gradlew run"
-    for outfile in config.check_for_existence("*.out"):
-        java = outfile.with_suffix(".java")
-        if java.exists():
-            if "{VisuallyInspectOutput}" in java.read_text():  # Don't create p1 file
-                print("{} Excluded".format(java.name))
-                continue
-        out_text = adjust_lines(outfile.read_text())
-        phase_1 = outfile.with_suffix(".p1")
-        with phase_1.open('w') as phs1:
-            phs1.write(fill_to_width(out_text) + "\n")
-            errfile = outfile.with_suffix(".err")
-            if errfile.exists():
-                phs1.write("___[ Error Output ]___\n")
-                phs1.write(fill_to_width(errfile.read_text()) + "\n")
-            phs1.write("*/\n")
+    config.reformat_runoutput_files()
 
 
 def remove_output(javatext):

@@ -9,7 +9,7 @@ import textwrap
 from collections import defaultdict
 from pathlib import Path
 
-import _update_extracted_example_output
+from betools import CmdLine
 import config
 
 
@@ -123,23 +123,24 @@ class Validator(defaultdict):  # Map of lists
                 embedded_output = filtered_embedded_output
                 generated_output = filtered_generated_output
 
-    def display_results(self):
+    def log_results(self):
         log = open("verified_output.txt", 'w')
         for strategy, retain in strategies:
             key = strategy.__name__
-            if key is "exact_match":
-                for java in self[key]:
-                    print(java)
-            elif key in self:
+            # if key is "exact_match":
+            #     for java in self[key]:
+            #         print(java)
+            # elif key in self:
+            if key in self:
                 log.write("\n" + (" " + key + " ").center(45, "=") + "\n")
                 for java in self[key]:
                     log.write(java + "\n")
         log.close()
 
 
-if __name__ == '__main__':
+def validate_all():
     # Generate '.p1' files:
-    _update_extracted_example_output.reformat_runoutput_files()
+    config.reformat_runoutput_files()
     find_output = re.compile(r"/\* (Output:.*)\*/", re.DOTALL)
     validator = Validator()
     for outfile in Path(".").rglob("*.p1"):
@@ -155,5 +156,28 @@ if __name__ == '__main__':
                                     find_output.search(
                                         javatext).group(0).strip(),
                                     outfile.read_text().strip())
-    validator.display_results()
+    validator.log_results()
+
+
+@CmdLine("a")
+def verify_all_output():
+    """
+    Generate .p1 files and check against all matching strategies
+    """
+    validate_all()
     os.system("more verified_output.txt")
+
+
+@CmdLine("u")
+def display_unmatched_output():
+    """
+    Generate .p1 files and display those that don't match any strategy
+    """
+    print("Verifying .out and .err files against embedded /* Output:")
+    validate_all()
+    print("[Displaying no_match.bat:]")
+    os.system("cat no_match.bat")
+
+
+if __name__ == '__main__':
+    CmdLine.run()
