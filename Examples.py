@@ -18,6 +18,7 @@ logging.basicConfig(filename=__file__.split(
 
 # For Development:
 tools_to_copy = [Path(sys.path[0]) / f for f in [
+    "__tests.bat",
     "_check_markdown.bat",
     "_output_file_check.bat",
     "_verify_output.bat",
