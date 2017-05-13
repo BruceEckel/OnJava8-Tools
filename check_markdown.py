@@ -1,5 +1,5 @@
 # Various tests to check Pandoc-flavored markdown documents
-# Used in "On Java 8"
+"Checks 'On Java 8' markdown files"
 import os
 import re
 import shutil
@@ -13,7 +13,7 @@ import config
 
 
 def find_headings():
-    "Find all markdown headings in book"
+    "Find all headings in source markdown files"
     marked_headings = []
     pure_headings = []
     for md in config.markdown_dir.glob("[0-9][0-9]_*.md"):
@@ -36,7 +36,7 @@ def find_headings():
 
 @CmdLine("s")
 def show_all_headings():
-    "Display all markdown headings in book"
+    "Display all headings in source markdown files"
     pure, marked = find_headings()
     for m in marked:
         print(m)
@@ -44,7 +44,8 @@ def show_all_headings():
 
 @CmdLine("c")
 def check_underlined_section_heads():
-    "Check lengths of '-' and '=' used to mark section heads"
+    "Check lengths of '-' and '=' used to mark section heads (source markdown files)"
+    print("Checking underlines on section heads")
     pure, marked = find_headings()
     marked = [good for good in marked if not good.startswith("#")]
     for name, underline in zip(marked[::2], marked[1::2]):
@@ -98,7 +99,8 @@ def find_links():
 
 @CmdLine("l")
 def check_links_against_headings():
-    "check [Cross Links] to ensure they all match a heading"
+    "check [Cross Links] to ensure they all match a heading (source markdown files)"
+    print("Checking [Cross Links]")
     link_text = [link[1:-1] for link in find_links()]
     pure, marked = find_headings()
     for link in link_text:
@@ -108,7 +110,7 @@ def check_links_against_headings():
 
 @CmdLine('d')
 def check_for_leading_or_trailing_dashes():
-    "Make sure there are no lines with broken hyphenation"
+    "Make sure there are no lines with broken hyphenation (uses combined markdown)"
     print("Checking for leading or trailing dashes")
     assert config.combined_markdown.exists()
     book = remove_code(Path(config.combined_markdown).read_text(
@@ -120,16 +122,32 @@ def check_for_leading_or_trailing_dashes():
                 # os.system("subl {}:{}".format(config.combined_markdown, n))
 
 
-@CmdLine('t')
-def find_all_bracket_tags():
-    "Find comment tags in Java files"
+@CmdLine('j')
+def find_all_java_bracket_tags():
+    "Find comment tags starting with {java in Java files (source markdown files)"
     look_for = re.compile("^//\s*\{")
     all = list()
     for md in config.markdown_dir.glob("[0-9][0-9]_*.md"):
         lines = md.read_text().splitlines()
         for n, line in enumerate(lines):
             if look_for.search(line):
-                all.append(line)
+                if "{java" in line:
+                    all.append(line)
+    for k, v in sorted(Counter(all).items()):
+        print("[{}]\t{}".format(v, k))
+
+
+@CmdLine('t')
+def find_all_non_java_bracket_tags():
+    "Find comment tags that don't start with {java in Java files (source markdown files)"
+    look_for = re.compile("^//\s*\{")
+    all = list()
+    for md in config.markdown_dir.glob("[0-9][0-9]_*.md"):
+        lines = md.read_text().splitlines()
+        for n, line in enumerate(lines):
+            if look_for.search(line):
+                if "{java" not in line:
+                    all.append(line)
     for k, v in sorted(Counter(all).items()):
         print("[{}]\t{}".format(v, k))
 
@@ -159,6 +177,7 @@ def blankOutputFiles():
     Show java files with expected output where there is none
     (Not sure if this is working right)
     """
+    print("Checking for blank output files")
     find_output = re.compile(r"/\* Output:(.*)\*/", re.DOTALL)
     for java in config.example_dir.rglob("*.java"):
         with java.open() as codeFile:
