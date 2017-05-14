@@ -16,6 +16,7 @@ import config
 # print(combined.encode("windows-1252"))
 
 def filter_out_code(text):
+    "Remove all code listings from text"
     result = []
     index = 0
     code = False
@@ -35,7 +36,7 @@ def filter_out_code(text):
 @CmdLine('s')
 def spell_combined_files():
     """
-    Put markdown files together and filter out code to prepare for aspell
+    Put markdown files together and filter out code to prepare for aspell.
     """
     combine_markdown_files(config.markdown_dir, config.combined_markdown)
     filter_out_code(config.combined_markdown.read_text(encoding="utf-8"))
@@ -46,10 +47,33 @@ but correct spellings in the original using b -s
 """)
 
 
-# @CmdLine('d')
-# def disassemble_combined_spellchecked_markdown_file():
-#     "Turn spell checked markdown file into a collection of chapter-based files"
-#     disassemble_combined_markdown_file(config.stripped_for_spelling)
+def extract_code(text):
+    "Remove everything EXCEPT code listings"
+    result = []
+    index = 0
+    code = False
+    for line in text.splitlines():
+        if line.startswith("```"):
+            code = not code
+            continue
+        if code:
+            result.append(line)
+            continue
+    just_code = "\n".join(result)
+    config.code_only.write_text(just_code.strip() + "\n", encoding="utf8")
+    print("Wrote {}".format(config.code_only))
+
+
+
+@CmdLine('c')
+def extract_comments_for_spellchecking():
+    """
+    Put markdown files together and extract comments from code to prepare for aspell.
+    Produces onjava-code-only.md
+    """
+    combine_markdown_files(config.markdown_dir, config.combined_markdown)
+    extract_code(config.combined_markdown.read_text(encoding="utf-8"))
+    os.system("subl {}".format(config.code_only))
 
 
 

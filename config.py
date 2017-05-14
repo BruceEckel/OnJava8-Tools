@@ -35,6 +35,7 @@ combined_markdown_html = build_dir / "onjava-assembled-html.md"
 combined_markdown_pdf = build_dir / "onjava-assembled-pdf.md"
 stripped_for_style = build_dir / "onjava-stripped-for-style.md"
 stripped_for_spelling = build_dir / "onjava-stripped-for-spelling.md"
+code_only = build_dir / "onjava-code-only.md"
 
 ebookResources = rootPath / "resources"
 img_dir = ebookResources / "images"
