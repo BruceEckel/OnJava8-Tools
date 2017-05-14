@@ -8,8 +8,10 @@ from pathlib import Path
 import os
 import sys
 import re
+import pprint
 import shutil
 from betools import CmdLine
+from sortedcontainers import SortedSet
 from ebook_build import *
 import config
 
@@ -47,22 +49,65 @@ but correct spellings in the original using b -s
 """)
 
 
-def extract_code(text):
-    "Remove everything EXCEPT code listings"
-    result = []
-    index = 0
-    code = False
-    for line in text.splitlines():
-        if line.startswith("```"):
-            code = not code
-            continue
-        if code:
-            result.append(line)
-            continue
-    just_code = "\n".join(result)
-    config.code_only.write_text(just_code.strip() + "\n", encoding="utf8")
-    print("Wrote {}".format(config.code_only))
+def filter_comments(comments):
+    clump = " ".join(comments)
+    clump = clump.replace(":", "")
+    clump = clump.replace(";", "")
+    clump = clump.replace(",", "")
+    parts = clump.split()
+    parts2 = []
+    for part in parts:
+        if part.endswith("."):
+            parts2.append(part[:-1])
+        else:
+            parts2.append(part)
+    parts = [part for part in parts2 if (
+        "*" not in part
+        and "@" not in part
+        and re.search("\w", part) # At least one letter
+        and not re.search("[^A-Za-z]", part) # Nothing but letters
+        )]
+    return parts
 
+
+def extract_java_code(text):
+    "Return combined Java code listings"
+    java_listings = re.findall("```java.*?```", text, re.DOTALL)
+    just_code = "\n".join(java_listings)
+    just_code = re.sub("/\* Output:.*?\*/", "", just_code, flags=re.DOTALL)
+    just_code = re.sub("//\s+{.*?}", "//", just_code, flags=re.DOTALL)
+    just_code = re.sub("```java\s+//[^\n]+", "```java", just_code, flags=re.DOTALL)
+    config.java_code_only.write_text(just_code.strip() + "\n", encoding="utf8")
+
+    slash_star = re.findall("[^*]/\*.*?\*/", just_code, re.DOTALL)
+    slash_star = [line for line in slash_star if "/* ... */" not in line]
+    slash_star = filter_comments(slash_star)
+
+    slash_slash = []
+    for ss in [ss.strip() for ss in re.findall("//.*", just_code)]:
+        if ss == "// ...":
+            continue
+        if ss == "//":
+            continue
+        if "//" in ss[2:]:
+            ss = "// " + (ss[2:].split("//")[1]).strip()
+        if re.match("// \[\d+\]", ss):
+            continue
+        if ss.startswith("//-"):
+            continue
+        if ss.endswith(";"):
+            continue
+        if ss.endswith(":"):
+            ss = ss[:-1]
+        ss = ss[2:]
+        ss = ss.replace("...","").strip()
+        if ss.endswith("{") or ss.endswith("}"):
+            continue
+        slash_slash.append(ss)
+    slash_slash = filter_comments(slash_slash)
+    all_comments = SortedSet(slash_star + slash_slash)
+
+    config.java_comments_only.write_text("\n".join(all_comments).strip() + "\n")
 
 
 @CmdLine('c')
@@ -72,9 +117,11 @@ def extract_comments_for_spellchecking():
     Produces onjava-code-only.md
     """
     combine_markdown_files(config.markdown_dir, config.combined_markdown)
-    extract_code(config.combined_markdown.read_text(encoding="utf-8"))
-    os.system("subl {}".format(config.code_only))
-
+    extract_java_code(config.combined_markdown.read_text(encoding="utf-8"))
+    print("""
+now run sp_comments.bat
+but correct spellings in the original using b -s
+""")
 
 
 if __name__ == '__main__':
