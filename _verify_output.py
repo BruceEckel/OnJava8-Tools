@@ -7,10 +7,11 @@ import re
 import sys
 import textwrap
 from collections import defaultdict
-from pathlib import Path
 from difflib import SequenceMatcher
+from pathlib import Path
 
 from betools import CmdLine
+
 import config
 
 
@@ -72,13 +73,14 @@ def words_only(input_text):
 def ratio(input_text):
     return True
 
+
 def no_match(input_text): return True
 
 
 # Chain of responsibility:
 strategies = [
     # Filter                  # Retain result
-                              # for rest of chain
+    # for rest of chain
     (exact_match,               False),
     (ignore_dates,              True),
     (ignore_memory_addresses,   True),
@@ -106,12 +108,11 @@ class Validator(defaultdict):  # Map of lists
             if strat_batch.exists():
                 strat_batch.unlink()
 
-
     def find_output_match(self, javafile, embedded_output, generated_output):
         for strategy, retain in strategies:
             strategy_name = strategy.__name__
             if strategy_name is "ratio":
-                print (strategy_name)
+                print(strategy_name)
 
             def record_output(result=None):
                 tfile = javafile.with_suffix("." + strategy_name)
@@ -130,14 +131,15 @@ class Validator(defaultdict):  # Map of lists
 
             if strategy_name is "ratio":
                 print("++++ " + strategy_name)
-                ratio = SequenceMatcher(None, embedded_output, generated_output).ratio()
+                ratio = SequenceMatcher(
+                    None, embedded_output, generated_output).ratio()
                 record_output("Ratio = %.2f" % ratio)
                 return
 
             filtered_embedded_output = strategy(embedded_output)
             filtered_generated_output = strategy(generated_output)
             if filtered_embedded_output == filtered_generated_output:
-                self[strategy_name].append(str(javafile))
+                self[strategy_name].append(str(javafile.relative_to(config.example_dir)))
                 if strategy_name is "exact_match":
                     return
                 record_output()
@@ -145,7 +147,6 @@ class Validator(defaultdict):  # Map of lists
             if retain:
                 embedded_output = filtered_embedded_output
                 generated_output = filtered_generated_output
-
 
     def log_results(self):
         log = open("verified_output.txt", 'w')
