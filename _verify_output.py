@@ -8,6 +8,7 @@ import sys
 import textwrap
 from collections import defaultdict
 from pathlib import Path
+from difflib import SequenceMatcher
 
 from betools import CmdLine
 import config
@@ -68,6 +69,9 @@ def words_only(input_text):
                 if word_only.fullmatch(w)]))
 
 
+def ratio(input_text):
+    return True
+
 def no_match(input_text): return True
 
 
@@ -84,44 +88,64 @@ strategies = [
     (unique_lines,              False),
     (unique_words,              False),
     (words_only,                False),
-    (no_match,                  False),
+    (ratio,                     False),
+    # (no_match,                  False),
 ]
 
 
 class Validator(defaultdict):  # Map of lists
-    compare_output = Path(".") / "compare_output.bat"
+    compare_output = config.example_dir / "compare_output.bat"
 
     def __init__(self):
         super().__init__(list)
+        # Erase the old results files:
         if Validator.compare_output.exists():
             Validator.compare_output.unlink()
         for strategy, retain in strategies:
-            strat_batch = Path(strategy.__name__ + ".bat")
+            strat_batch = config.example_dir / (strategy.__name__ + ".bat")
             if strat_batch.exists():
                 strat_batch.unlink()
 
+
     def find_output_match(self, javafile, embedded_output, generated_output):
         for strategy, retain in strategies:
-            filtered_embedded_output = strategy(embedded_output)
-            filtered_generated_output = strategy(generated_output)
-            if filtered_embedded_output == filtered_generated_output:
-                strat_name = strategy.__name__
-                self[strat_name].append(str(javafile))
-                if strat_name is "exact_match":
-                    return
-                tfile = javafile.with_suffix("." + strat_name)
-                with Path(strat_name + ".bat").open('a') as strat_batch:
-                    strat_batch.write("subl " + str(tfile) + "\n")
+            strategy_name = strategy.__name__
+            if strategy_name is "ratio":
+                print (strategy_name)
+
+            def record_output(result=None):
+                tfile = javafile.with_suffix("." + strategy_name)
+                edit_command = "subl " + str(tfile) + "\n"
+                with (config.example_dir / (strategy_name + ".bat")).open('a') as strat_batch:
+                    strat_batch.write(edit_command)
                 with Validator.compare_output.open('a') as batch:
-                    batch.write("subl " + str(tfile) + "\n")
+                    batch.write(edit_command)
                 with tfile.open('w') as trace_file:
                     trace_file.write(javafile.read_text() + "\n\n")
                     trace_file.write("// === Actual ===\n\n")
                     trace_file.write(str(generated_output))
+                    if result:
+                        trace_file.write("\n" + "*" * 55 + "\n")
+                        trace_file.write(result + "\n")
+
+            if strategy_name is "ratio":
+                print("++++ " + strategy_name)
+                ratio = SequenceMatcher(None, embedded_output, generated_output).ratio()
+                record_output("Ratio = %.2f" % ratio)
+                return
+
+            filtered_embedded_output = strategy(embedded_output)
+            filtered_generated_output = strategy(generated_output)
+            if filtered_embedded_output == filtered_generated_output:
+                self[strategy_name].append(str(javafile))
+                if strategy_name is "exact_match":
+                    return
+                record_output()
                 return
             if retain:
                 embedded_output = filtered_embedded_output
                 generated_output = filtered_generated_output
+
 
     def log_results(self):
         log = open("verified_output.txt", 'w')
@@ -143,7 +167,7 @@ def validate_all():
     config.reformat_runoutput_files()
     find_output = re.compile(r"/\* (Output:.*)\*/", re.DOTALL)
     validator = Validator()
-    for outfile in Path(".").rglob("*.p1"):
+    for outfile in config.example_dir.rglob("*.p1"):
         javafile = outfile.with_suffix(".java")
         if not javafile.exists():
             print(str(outfile) + " has no javafile")
@@ -152,10 +176,10 @@ def validate_all():
         if "/* Output:" not in javatext:
             print(str(outfile) + " has no /* Output:")
             sys.exit(1)
-        validator.find_output_match(javafile,
-                                    find_output.search(
-                                        javatext).group(0).strip(),
-                                    outfile.read_text().strip())
+        validator.find_output_match(
+            javafile,
+            find_output.search(javatext).group(0).strip(),
+            outfile.read_text().strip())
     validator.log_results()
 
 
@@ -165,7 +189,7 @@ def verify_all_output():
     Generate .p1 files and check against all matching strategies
     """
     validate_all()
-    os.system("more verified_output.txt")
+    os.system("cat verified_output.txt")
 
 
 @CmdLine("u")
