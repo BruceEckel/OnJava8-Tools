@@ -1,10 +1,11 @@
-# Make sure all subdirectories can be compiled independently (that the gradle dependencies are
-# correct). Runs gradlew clean, then gradle subdirectory:compileJava for each subdirectory.
+# Make sure all subdirectories can be compiled and runindependently 
+# (that the gradle dependencies are correct). 
 import os
 import sys
 from subprocess import call
 from pathlib import Path
 import config
+from betools import CmdLine
 
 assert config.example_dir.exists() 
 
@@ -25,9 +26,23 @@ def gradle(arg):
         sys.exit(1)
     print("{} {} Succeeded {}".format(leader, cmd, leader))
 
-# Look in base directory only:
-for dir in [d for d in config.example_dir.glob("*") if d.is_dir() and d.name not in exclude]:
-    os.chdir(config.example_dir)
-    gradle('clean')
-    gradle("{}:compileJava".format(dir.name))
-        
+@CmdLine('b')
+def compile_all_directories_independently():
+    "Runs gradlew clean, then gradle subdirectory:compileJava for each subdirectory."
+    for dir in [d for d in config.example_dir.glob("*") if d.is_dir() and d.name not in exclude]:
+        os.chdir(config.example_dir)
+        gradle('clean')
+        gradle("{}:compileJava".format(dir.name))
+
+
+@CmdLine('r')
+def run_all_directories_independently():
+    "Runs gradlew clean, then gradle subdirectory:run for each subdirectory."
+    for dir in [d for d in config.example_dir.glob("*") if d.is_dir() and d.name not in exclude]:
+        os.chdir(config.example_dir)
+        gradle('clean')
+        gradle("{}:run".format(dir.name))
+
+
+if __name__ == '__main__':
+    CmdLine.run()
