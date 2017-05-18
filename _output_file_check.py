@@ -56,7 +56,11 @@ def discover(extension, pattern):
             print("\nNo {} for {}".format(java_rel, outfile_rel))
             continue
         text = java.read_text()
-        if pattern not in text and "// {ValidateByHand}" not in text:
+        if (pattern not in text
+            and "// {VisuallyInspectOutput}" not in text
+            and "// {ExcludeFromGradle}" not in text
+            and "@Test" not in text
+            ):
             print("\nNo /* Output: {} for {}".format(java_rel, outfile_rel))
     print("{} {} files".format(len(outfiles), extension))
 
@@ -68,7 +72,11 @@ def discover2(pattern, extension, edit=False):
         outfile = java.with_suffix(extension)
         outfile_rel = outfile.relative_to(config.example_dir)
         text = java.read_text()
-        if pattern in text and "// {ValidateByHand}" not in text:
+        if (pattern in text
+            and "// {VisuallyInspectOutput}" not in text
+            and "// {ExcludeFromGradle}" not in text
+            and "@Test" not in text
+            ):
             if not outfile.exists():
                 print("\nNo {} for {}".format(outfile_rel, java_rel))
                 if edit:
@@ -114,34 +122,55 @@ def show_comment_output_tag_lines():
     pprint.pprint(output_lines)
 
 
-def validate_by_hand_java_files():
+def visually_inspect_output_java_files():
     """
-    All Java files containing {ValidateByHand}
+    All Java files containing {VisuallyInspectOutput}
     """
     result = []
     for java in config.example_dir.rglob("*.java"):
-        if "{ValidateByHand}" in java.read_text():
+        if "{VisuallyInspectOutput}" in java.read_text():
             result.append(java)
     return result
 
 
 @CmdLine("v")
-def show_all_validate_by_hand_java_files():
+def show_all_visually_inspect_output_java_files():
     """
-    Display all Java files containing {ValidateByHand}
+    Display all Java files containing {VisuallyInspectOutput}
     """
-    for java in validate_by_hand_java_files():
+    for java in visually_inspect_output_java_files():
         java_rel = java.relative_to(config.example_dir)
         print("{}".format(java_rel))
 
 
 @CmdLine("x")
-def edit_all_validate_by_hand_java_files():
+def edit_all_visually_inspect_output_java_files():
     """
-    Open all Java files containing {ValidateByHand} in Sublime
+    Open all Java files containing {VisuallyInspectOutput} in Sublime
     """
-    for java in validate_by_hand_java_files():
+    for java in visually_inspect_output_java_files():
         os.system("subl {}".format(java))
+
+
+@CmdLine("j")
+def show_all_files_using_junit():
+    """
+    Display all Java files using JUnit
+    """
+    for java in config.example_dir.rglob("*.java"):
+        if ".junit." in java.read_text():
+            print("{}".format(java.relative_to(config.example_dir)))
+
+
+@CmdLine("i")
+def edit_all_files_using_junit():
+    """
+    Edit all Java files using JUnit
+    """
+    for java in config.example_dir.rglob("*.java"):
+        if ".junit." in java.read_text():
+            print("{}".format(java.relative_to(config.example_dir)))
+            os.system("subl {}".format(java))
 
 
 if __name__ == '__main__':
