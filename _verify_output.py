@@ -174,6 +174,11 @@ def validate_all():
             print(str(outfile) + " has no javafile")
             sys.exit(1)
         javatext = javafile.read_text()
+        if "{VisuallyInspectOutput}" in javatext:
+             # Do not test {VisuallyInspectOutput}
+             print("Skipping {} because of {VisuallyInspectOutput} tag".format(
+                javafile.relative_to(config.example_dir)))
+            continue
         if "/* Output:" not in javatext:
             print(str(outfile) + " has no /* Output:")
             sys.exit(1)
