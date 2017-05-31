@@ -1,3 +1,4 @@
+# Do I need this or is it covered by _output_file_check.py ?
 import config
 import collections
 base = "/* Output:"
