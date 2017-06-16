@@ -1,13 +1,16 @@
 @echo off
 rem venv.bat
 
-if exist virtualenv (
-  if defined VIRTUAL_ENV (
-    virtualenv\Scripts\deactivate.bat
+rem Works if you're outside the starting directory:
+if defined VIRTUAL_ENV (
+  deactivate.bat
+) else (
+  rem Only works inside starting directory, otherwise
+  rem creates a new virtual environment:
+  if exist virtualenv (
+    virtualenv\Scripts\activate.bat
   ) else (
+    python -m venv virtualenv
     virtualenv\Scripts\activate.bat
   )
-) else (
-  py -m venv virtualenv
-  virtualenv\Scripts\activate.bat
 )
