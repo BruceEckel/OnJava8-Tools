@@ -4,4 +4,4 @@ if exist %GIT_HOME%\AtomicKotlin\ExtractedExamples (
 ) else (
   cd %GIT_HOME%\AtomicKotlin
 )
-%GIT_HOME%\AtomicKotlinBuilder\virtualenv\Scripts\activate.bat
+%GIT_HOME%\BookBuilder\virtualenv\Scripts\activate.bat
