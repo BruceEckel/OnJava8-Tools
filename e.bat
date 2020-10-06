@@ -1,4 +1,4 @@
 @echo off
 cd %~dp0
-py -3 %~dp0Examples.py %*
+python %~dp0Examples.py %*
 cd %EXTRACTED_EXAMPLES%

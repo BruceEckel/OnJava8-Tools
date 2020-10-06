@@ -9,7 +9,7 @@ import sys
 from logging import debug
 from pathlib import Path
 
-from betools import CmdLine
+import click
 
 import config
 
@@ -29,7 +29,16 @@ tools_to_copy = [Path(sys.path[0]) / f for f in [
 ]]
 
 
-@CmdLine("t")
+@click.group()
+@click.version_option()
+def cli():
+    """
+    Extract code to config.example_dir from On Java Markdown files
+    """
+
+
+
+@cli.command()
 def copyTestFiles():
     print("Copying Test Files ...")
     for test_path in list(config.github_code_dir.rglob("tests/*")):
@@ -47,7 +56,7 @@ def copyTestFiles():
 maindef = re.compile("public\s+static\s+void\s+main")
 
 
-@CmdLine("x")
+@cli.command()
 def extractExamples():
     print("Extracting examples ...")
     if not config.example_dir.exists():
@@ -87,7 +96,7 @@ def extractExamples():
                             codeListing.write("\n".join(listing[1:]))
 
 
-@CmdLine("g")
+@cli.command()
 def copyGradleFiles():
     print("Copying Gradle Files ...")
     if not config.github_code_dir.exists():
@@ -122,7 +131,7 @@ task {task_name}(type: JavaExec) {{
 """
 
 
-@CmdLine("k")
+@cli.command()
 def createTasks():
     tasks = """
 def javaClassPath = sourceSets.main.runtimeClasspath
@@ -164,7 +173,7 @@ task run (dependsOn: [
     print(f"{len(task_dict)} tasks")
 
 
-@CmdLine("c")
+@cli.command()
 def clean():
     "Remove ExtractedExamples directory"
     print("Cleaning ...")
@@ -176,7 +185,7 @@ def clean():
         raise RuntimeError()
 
 
-@CmdLine('e')
+@cli.command()
 def extractAndCopyBuildFiles():
     "Clean, then extract examples from Markdown, copy gradle files from OnJava-Examples"
     clean()
@@ -185,4 +194,4 @@ def extractAndCopyBuildFiles():
 
 
 if __name__ == '__main__':
-    CmdLine.run()
+    cli()
