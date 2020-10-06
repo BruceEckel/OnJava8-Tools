@@ -38,7 +38,6 @@ def cli():
 
 
 
-@cli.command()
 def copyTestFiles():
     print("Copying Test Files ...")
     for test_path in list(config.github_code_dir.rglob("tests/*")):
@@ -53,11 +52,16 @@ def copyTestFiles():
             shutil.copy(str(test_path), str(dest))
 
 
+@cli.command()
+def copy_test_files():
+    copyTestFiles()
+
+
 maindef = re.compile("public\s+static\s+void\s+main")
 
 
 @cli.command()
-def extractExamples():
+def extract_examples():
     print("Extracting examples ...")
     if not config.example_dir.exists():
         debug("creating {}".format(config.example_dir))
@@ -186,11 +190,12 @@ def clean():
 
 
 @cli.command()
-def extractAndCopyBuildFiles():
+def extract_and_copy_build_files():
     "Clean, then extract examples from Markdown, copy gradle files from OnJava-Examples"
-    clean()
-    extractExamples()
-    copyGradleFiles()
+    print("Extracting ...")
+    # clean()
+    # extractExamples()
+    # copyGradleFiles()
 
 
 if __name__ == '__main__':

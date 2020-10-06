@@ -18,7 +18,7 @@ except:
     print("Error: need to set ONJAVA_TOOLS")
     sys.exit(1)
 
-rootPath = tools_dir.parent / "on-java"
+rootPath = tools_dir.parent / "OnJava8"
 
 markdown_dir = rootPath / "Markdown"
 
