@@ -60,8 +60,7 @@ def copy_test_files():
 maindef = re.compile("public\s+static\s+void\s+main")
 
 
-@cli.command()
-def extract_examples():
+def extractExamples():
     print("Extracting examples ...")
     if not config.example_dir.exists():
         debug("creating {}".format(config.example_dir))
@@ -101,6 +100,10 @@ def extract_examples():
 
 
 @cli.command()
+def extract_examples():
+    extractExamples()
+
+
 def copyGradleFiles():
     print("Copying Gradle Files ...")
     if not config.github_code_dir.exists():
@@ -120,6 +123,11 @@ def copyGradleFiles():
             debug("copy " + str(gradle_path.relative_to(config.github_code_dir.parent)
                                 ) + " " + str(dest.relative_to(config.example_dir)))
             shutil.copy(str(gradle_path), str(dest))
+
+
+@cli.command()
+def copy_gradle_files():
+    copyGradleFiles()
 
 
 def make_task(task_name, package_name = None):
@@ -177,8 +185,7 @@ task run (dependsOn: [
     print(f"{len(task_dict)} tasks")
 
 
-@cli.command()
-def clean():
+def _clean():
     "Remove ExtractedExamples directory"
     print("Cleaning ...")
     try:
@@ -188,14 +195,17 @@ def clean():
         print("Old path removal failed")
         raise RuntimeError()
 
+@cli.command()
+def clean():
+    _clean()
 
 @cli.command()
 def extract_and_copy_build_files():
     "Clean, then extract examples from Markdown, copy gradle files from OnJava-Examples"
     print("Extracting ...")
-    # clean()
-    # extractExamples()
-    # copyGradleFiles()
+    _clean()
+    extractExamples()
+    copyGradleFiles()
 
 
 if __name__ == '__main__':
