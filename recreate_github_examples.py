@@ -4,8 +4,17 @@ from pathlib import Path
 import sys
 import os
 import shutil
-from betools import CmdLine
+import click
 import config
+
+
+
+@click.group()
+@click.version_option()
+def cli():
+    """
+    Tools for updating Github example-code repository
+    """
 
 
 def insert_copyright(lines):
@@ -22,8 +31,12 @@ def insert_copyright(lines):
             ] + lines[1:]
 
 
-@CmdLine('A')
+@cli.command()
 def add_copyright():
+    _add_copyright()
+
+
+def _add_copyright():
     "Ensure copyright line is in all github example files"
     print("Ensuring copyright")
     candidates = \
@@ -63,8 +76,12 @@ def add_copyright():
 #         else:
 #             f.unlink()
 
-@CmdLine("c")
+@cli.command()
 def clean_github_dir():
+    _clean_github_dir()
+
+
+def _clean_github_dir():
     "Clean github example code directory"
     print("Cleaning ...")
     try:
@@ -81,8 +98,11 @@ def clean_github_dir():
         sys.exit(1)
 
 
-@CmdLine('e')
+@cli.command()
 def copy_examples():
+    _copy_examples()
+
+def _copy_examples():
     "Copy example tree into github example code directory"
     print("Copying new github files >>>>>>>>>>>>")
     for di in (x for x in config.example_dir.glob("*")):
@@ -93,20 +113,20 @@ def copy_examples():
             shutil.copyfile(str(di), str(config.github_code_dir / di.name))
 
 
-@CmdLine('r')
-def recreate_github_example_directory():
+@cli.command()
+def all():
     """
-    YOU MUST run e -e by hand first!!
     Erase old github examples and copy new ones.
+    YOU MUST run e extract_and_copy_build_files by hand first!!
     Ensure copyright info is on each file.
     """
     # run this by hand:
     # examples_cmd = config.tools_dir / "Examples.py"
     # os.system("python " + str(examples_cmd) + " -e" )
-    clean_github_dir()
-    copy_examples()
-    add_copyright()
+    _clean_github_dir()
+    _copy_examples()
+    _add_copyright()
 
 
 if __name__ == '__main__':
-    CmdLine.run()
+    cli()

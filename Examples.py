@@ -200,7 +200,7 @@ def clean():
     _clean()
 
 @cli.command()
-def extract_and_copy_build_files():
+def all():
     "Clean, then extract examples from Markdown, copy gradle files from OnJava-Examples"
     print("Extracting ...")
     _clean()
