@@ -1,2 +1,2 @@
 @echo off
-cd %GIT_HOME%\OnJava-Tools
+cd %GIT_HOME%\OnJava8-Tools

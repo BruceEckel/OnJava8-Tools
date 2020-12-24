@@ -31,3 +31,5 @@ tmp*.txt
 *.zip
 *.log
 
+.vscode/.ropeproject/config.py
+MarkdownCombined.md
