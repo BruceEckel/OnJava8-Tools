@@ -1,15 +1,19 @@
 #! py -3
-# Extract code config.example_dir from On Java Markdown files.
-# Configures for Gradle build by copying from OnJava-Examples.
+"""
+Extract code to config.example_dir from On Java 8 Markdown files.
+Configures for Gradle build by copying from OnJava8-Examples.
+"""
 import logging
-import os
 import re
 import shutil
 import sys
 from logging import debug
 from pathlib import Path
+
 import click
+
 import config
+from directories import exists, erase
 
 logging.basicConfig(
     filename=__file__.split(".")[0] + ".log", filemode="w", level=logging.DEBUG
@@ -34,55 +38,47 @@ tools_to_copy = [
 @click.group()
 @click.version_option()
 def cli():
-    """
-    Extract code to config.example_dir from On Java Markdown files
-    """
+    pass
 
 
-def copyTestFiles():
-    print("Copying Test Files ...")
+cli.help = __doc__
+
+
+def initialize_example_dir(example_dir_path):
+    if example_dir_path.exists():
+        debug(f"Already exists: {example_dir_path}")
+        return
+    debug(f"initializing {example_dir_path}")
+    example_dir_path.mkdir()
+    print(f"Copying Test Files to {example_dir_path}")
     for test_path in list(config.github_code_dir.rglob("tests/*")):
-        dest = config.example_dir / test_path.relative_to(config.github_code_dir)
+        destination = example_dir_path / test_path.relative_to(config.github_code_dir)
         if test_path.is_file():
-            if not dest.parent.exists():
-                debug("creating " + str(dest.parent))
-                os.makedirs(str(dest.parent))
-            debug(
-                "copy "
-                + str(test_path.relative_to(config.github_code_dir.parent))
-                + " "
-                + str(dest.relative_to(config.example_dir))
-            )
-            shutil.copy(str(test_path), str(dest))
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            debug(f"{test_path.relative_to(config.github_code_dir.parent)}" +
+                  f"\n\t-> {destination.relative_to(example_dir_path)}")
+            shutil.copy(str(test_path), str(destination))
+    for f in tools_to_copy:
+        shutil.copy(str(f), str(example_dir_path))
 
 
 @cli.command()
 def copy_test_files():
-    copyTestFiles()
+    initialize_example_dir(config.example_dir)
 
 
-maindef = re.compile("public\s+static\s+void\s+main")
+maindef = re.compile(r"public\s+static\s+void\s+main")
+slugline = re.compile(r"^(//|#) .+?\.[a-z]+$", re.MULTILINE)
+xmlslug = re.compile(r"^<!-- .+?\.[a-z]+ +-->$", re.MULTILINE)
 
 
-def extractExamples():
+def extract_examples_to_path(example_dir_path):
     print("Extracting examples ...")
-    if not config.example_dir.exists():
-        debug("creating {}".format(config.example_dir))
-        config.example_dir.mkdir()
-    copyTestFiles()
-
-    for f in tools_to_copy:
-        shutil.copy(str(f), str(config.example_dir))
-
-    if not config.markdown_dir.exists():
-        print("Cannot find", config.markdown_dir)
-        sys.exit()
-
-    slugline = re.compile("^(//|#) .+?\.[a-z]+$", re.MULTILINE)
-    xmlslug = re.compile("^<!-- .+?\.[a-z]+ +-->$", re.MULTILINE)
+    initialize_example_dir(example_dir_path)
+    exists(config.markdown_dir.exists)
 
     for sourceText in config.markdown_dir.glob("*.md"):
-        debug("--- {} ---".format(sourceText.name))
+        debug(f"--- {sourceText.name} ---")
         with sourceText.open("rb") as chapter:
             text = chapter.read().decode("utf-8", "ignore")
             for group in re.findall("```(.*?)\n(.*?)\n```", text, re.DOTALL):
@@ -91,8 +87,8 @@ def extractExamples():
                 if slugline.match(title) or xmlslug.match(title):
                     debug(title)
                     fpath = title.split()[1].strip()
-                    target = config.example_dir / fpath
-                    debug("writing {}".format(target))
+                    target = example_dir_path / fpath
+                    debug(f"writing {target}")
                     if not target.parent.exists():
                         target.parent.mkdir(parents=True)
                     with target.open("w", newline="") as codeListing:
@@ -105,43 +101,41 @@ def extractExamples():
 
 @cli.command()
 def extract_examples():
-    extractExamples()
+    extract_examples_to_path(config.example_dir)
 
 
-def copyGradleFiles():
+def init_gradle_files():
     print("Copying Gradle Files ...")
-    if not config.github_code_dir.exists():
-        print("Doesn't exist: %s" % config.github_code_dir)
-        sys.exit(1)
-    for gradle_path in (
-        list(config.github_code_dir.rglob("*gradle*"))
-        + list(config.github_code_dir.rglob("*.xml"))
-        + list(config.github_code_dir.rglob("*.yml"))
-        + list(config.github_code_dir.rglob("*.md"))
-        + list((config.github_code_dir / "buildSrc").rglob("*"))
-    ):
-        dest = config.example_dir / gradle_path.relative_to(config.github_code_dir)
-        if gradle_path.is_file():
-            if not dest.parent.exists():
-                debug("creating " + str(dest.parent))
-                os.makedirs(str(dest.parent))
-            debug(
-                "copy "
-                + str(gradle_path.relative_to(config.github_code_dir.parent))
-                + " "
-                + str(dest.relative_to(config.example_dir))
-            )
-            shutil.copy(str(gradle_path), str(dest))
+    source = config.github_code_dir
+    exists(source)
+
+    def sources_generator():
+        paths = [
+            (source, "*gradle*"),
+            (source, "*.xml"),
+            (source, "*.yml"),
+            (source, "*.md"),
+            (source / "buildSrc", "*")
+        ]
+        for base, pattern in paths:
+            yield [path for path in base.rglob(pattern) if path.is_file()]
+
+    for gradle_path in [path for source in sources_generator() for path in source]:  # Flatten
+        destination = config.example_dir / gradle_path.relative_to(source)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        print(f"{gradle_path.relative_to(config.rootPath.parent)}" +
+              f"\n\t-> {destination.relative_to(config.example_dir)}")
+        # shutil.copy(str(gradle_path), str(destination))
 
 
 @cli.command()
 def copy_gradle_files():
-    copyGradleFiles()
+    init_gradle_files()
 
 
 def make_task(task_name, package_name=None):
     if package_name:
-        main = "{}.{}".format(package_name, task_name)
+        main = f"{package_name}.{task_name}"
     else:
         main = task_name
     return (
@@ -156,7 +150,7 @@ task {task_name}(type: JavaExec) {{
 
 
 @cli.command()
-def createTasks():
+def create_tasks():
     tasks = """
 def javaClassPath = sourceSets.main.runtimeClasspath
 
@@ -170,7 +164,7 @@ def javaClassPath = sourceSets.main.runtimeClasspath
     for java_file in config.example_dir.rglob("*.java"):
         text = java_file.read_text()
         lines = text.splitlines()
-        if not re.search("public\s+static\s+void\s+main", text):
+        if not re.search(r"public\s+static\s+void\s+main", text):
             continue
         package_name = None
         for line in lines:
@@ -198,14 +192,9 @@ task run (dependsOn: [
 
 
 def _clean():
-    "Remove ExtractedExamples directory"
-    print("Cleaning ...")
-    try:
-        if config.example_dir.exists():
-            shutil.rmtree(str(config.example_dir))
-    except:
-        print("Old path removal failed")
-        raise RuntimeError()
+    """Remove Examples Directories"""
+    print(erase(config.example_dir))
+    print(erase(config.java11_dir))
 
 
 @cli.command()
@@ -214,12 +203,12 @@ def clean():
 
 
 @cli.command()
-def all():
-    "Clean, extract Markdown examples, copy gradle files from OnJava-Examples"
+def all_regenerate():
+    """Clean, extract Markdown examples, copy gradle files from OnJava-Examples"""
     print("Extracting ...")
     _clean()
-    extractExamples()
-    copyGradleFiles()
+    extract_examples_to_path(config.example_dir)
+    init_gradle_files()
 
 
 if __name__ == "__main__":

@@ -33,3 +33,4 @@ tmp*.txt
 
 .vscode/.ropeproject/config.py
 MarkdownCombined.md
+.idea/*

@@ -1,5 +1,5 @@
 """
-Common program configuration variables for "On Java" tools
+Common program configuration variables for "On Java 8" tools
 """
 import os
 import sys
@@ -23,6 +23,8 @@ rootPath = tools_dir.parent / "OnJava8"
 markdown_dir = rootPath / "Markdown"
 
 example_dir = rootPath / "ExtractedExamples"
+
+java11_dir = rootPath / "Java11Examples"
 
 github_code_dir = rootPath.parent / "OnJava8-Examples"
 

@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 import shutil
 # from distutils.dir_util import copy_tree
@@ -24,3 +25,4 @@ def erase(dir_to_remove: Path):
         """
         )
         print(e)
+        sys.exit(1)
