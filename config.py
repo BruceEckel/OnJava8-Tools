@@ -6,10 +6,6 @@ import sys
 from pathlib import Path
 import textwrap
 
-# base_name = "BruceEckelOnJava8"
-# epub_file_name = base_name + ".epub"
-# epub_sample_file_name = base_name + "Sample.epub"
-
 code_width = 56
 
 try:
