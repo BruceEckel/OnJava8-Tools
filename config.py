@@ -24,6 +24,7 @@ markdown_dir = rootPath / "Markdown"
 
 example_dir = rootPath / "ExtractedExamples"
 
+java11_resources = rootPath / "resources" / "Java11Chapter"
 java11_dir = rootPath / "Java11Examples"
 
 github_code_dir = rootPath.parent / "OnJava8-Examples"
