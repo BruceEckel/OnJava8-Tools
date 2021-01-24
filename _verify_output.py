@@ -111,7 +111,7 @@ class Validator(defaultdict):  # Map of lists
     def find_output_match(self, javafile, embedded_output, generated_output):
         for strategy, retain in strategies:
             strategy_name = strategy.__name__
-            if strategy_name is "ratio":
+            if strategy_name == "ratio":
                 print(strategy_name)
 
             def record_output(result=None):
@@ -129,7 +129,7 @@ class Validator(defaultdict):  # Map of lists
                         trace_file.write("\n" + "*" * 55 + "\n")
                         trace_file.write(result + "\n")
 
-            if strategy_name is "ratio":
+            if strategy_name == "ratio":
                 print("++++ " + strategy_name)
                 ratio = SequenceMatcher(
                     None, embedded_output, generated_output).ratio()
@@ -140,7 +140,7 @@ class Validator(defaultdict):  # Map of lists
             filtered_generated_output = strategy(generated_output)
             if filtered_embedded_output == filtered_generated_output:
                 self[strategy_name].append(str(javafile.relative_to(config.example_dir)))
-                if strategy_name is "exact_match":
+                if strategy_name == "exact_match":
                     return
                 record_output()
                 return
@@ -175,8 +175,8 @@ def validate_all():
             sys.exit(1)
         javatext = javafile.read_text()
         if "{VisuallyInspectOutput}" in javatext:
-             # Do not test {VisuallyInspectOutput}
-             print("Skipping {} because of {VisuallyInspectOutput} tag".format(
+            # Do not test {VisuallyInspectOutput}
+            print("Skipping {} because of {VisuallyInspectOutput} tag".format(
                 javafile.relative_to(config.example_dir)))
             continue
         if "/* Output:" not in javatext:

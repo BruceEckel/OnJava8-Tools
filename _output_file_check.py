@@ -46,7 +46,7 @@ def edit_unmatched_error_output():
 
 
 def discover(extension, pattern):
-    outfiles = config.check_for_existence("*" + extension)
+    outfiles = config.require_existence("*" + extension)
     for outfile in outfiles:
         java = outfile.with_suffix(".java")
         java_rel = java.relative_to(config.example_dir)

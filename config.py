@@ -51,7 +51,7 @@ sample_book_original_dir = rootPath / "SampleBook" / "Original"
 combined_markdown_sample = sample_book_dir / "onjava-assembled.md"
 
 
-def check_for_existence(extension):
+def require_existence(extension):
     files_with_extension = list(example_dir.rglob(extension))
     if len(files_with_extension) < 1:
         print("Error: no " + extension + " files found")
@@ -93,7 +93,7 @@ def fill_to_width(text):
 
 
 def reformat_runoutput_files():
-    for outfile in check_for_existence("*.out"):
+    for outfile in require_existence("*.out"):
         java = outfile.with_suffix(".java")
         if java.exists():
             if "{VisuallyInspectOutput}" in java.read_text():  # Don't create p1 file
