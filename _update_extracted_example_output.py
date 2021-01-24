@@ -81,8 +81,8 @@ def insert_example_in_book(javafilepath):
     start = chapter_lines.index(header)
     end = chapter_lines.index("```", start)
     print(f"{start}: {header}, {end}: '```'")
-    # chapter_lines[start:end] = codelines
-    # chapter_path.write_text(("\n".join(chapter)).strip(), encoding="utf8")
+    chapter_lines[start:end] = codelines
+    chapter_path.write_text(("\n".join(chapter_lines)).strip() + "\n", encoding="utf8")
 
 
 @cli.command()
