@@ -30,7 +30,9 @@
 
 1. After extraction (`e all`), run `gradlew run`. This generates the `*.out`
    files which live in the same directories as the source files.
-2. Run `_verify_output -a`. This generates the `*.p1` (phase one) files *and*
-   reformats the output to the proper width. The `p1` files are also in the same
-   directories as the source files.
-3. Finally, run `_update_extracted_example_output `
+
+2. Run `_update_extracted_example_output format-and-include-new-output`. This
+   generates the `*.p1` (phase one) files *and* reformats the output to the
+   proper width. The `p1` files are also in the same directories as the source
+   files. The `p1` files are inserted into the Java files as `/* Output:` and
+   then the Java files are placed into the book.
