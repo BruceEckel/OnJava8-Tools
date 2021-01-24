@@ -36,3 +36,6 @@
    proper width. The `p1` files are also in the same directories as the source
    files. The `p1` files are inserted into the Java files as `/* Output:` and
    then the Java files are placed into the book.
+
+3. At this point if you run `_verify_output -a`, everything should show up as
+   `exact_match`.
