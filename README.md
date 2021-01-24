@@ -17,13 +17,12 @@
 2. Add this directory (`OnJava-Tools`) to your execution path.
 
 3. You'll need to install [my tools](https://github.com/BruceEckel/betools/),
-   and probably a number of other things that I'll post here when someone gives
-   me a list (this whole thing is an experiment so I'm only doing what's
-   absolutely necessary right now).
+   and probably a number of other things that will be revealed when you try to
+   run the tools.
 
 4. To extract the Example files from the book source (you must have permission
-   and a clone of the book source -- if you don't, this isn't for you), run: `e
-   all`. After that you should be able to successfully run `gradlew run` on the
+   and a clone of the book source -- if you don't, this isn't for you), run
+   `e all`. After that you should be able to successfully run `gradlew run` on the
    result.
 
 ## To Automatically Insert Generated Output Back Into Source Files
@@ -37,5 +36,8 @@
    files. The `p1` files are inserted into the Java files as `/* Output:` and
    then the Java files are placed into the book.
 
-3. At this point if you run `_verify_output -a`, everything should show up as
+3. Visually check the output using Github Desktop. Run `e all` and `gradlew run`
+   a second time to ensure nothing was corrupted.
+
+4. At this point if you run `_verify_output -a`, everything should show up as
    `exact_match`.
