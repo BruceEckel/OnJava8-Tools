@@ -25,7 +25,7 @@
    `e all`. After that you should be able to successfully run `gradlew run` on the
    result.
 
-## To Automatically Insert Generated Output Back Into Source Files
+## To Automatically Insert Generated Output Back Into Source Files & Book
 
 1. After extraction (`e all`), run `gradlew run`. This generates the `*.out`
    files which live in the same directories as the source files.
