@@ -42,7 +42,6 @@ def update_java_file(p1_file):
     javafile.write_text(new_javatext)
 
 
-@cli.command()
 def update_output_in_java_files():
     """
     Produce formatted .p1 files from the .out files produced by gradlew run
@@ -53,31 +52,37 @@ def update_output_in_java_files():
         update_java_file(p1_file)
 
 
-def insert_example_in_book(example):
+@cli.command()
+def update_example_output():
+    "(For testing)"
+    update_output_in_java_files()
+
+
+def insert_example_in_book(javafilepath):
+    if not javafilepath.exists():
+        print(f"Error: cannot find {javafilepath}")
+        sys.exit(1)
+    example = javafilepath.read_text()
+    if "/* Output:" not in example:
+        return # Doesn't need replacing
     codelines = example.splitlines()
     header = codelines[0]
-    book = config.combined_markdown.read_text(encoding="utf8").splitlines()
-    in_code = False
-    for i, line in enumerate(book):
-        if header in line:
-            print("Replacing {}".format(header[3:]))
-            start = i
-            in_code = True
-        if "```" in line and in_code:
-            end = i
-            break
-    else:
-        print("Couldn't find {}".format(header[3:]))
+    def find_chapter_with_example():
+        nonlocal header
+        for chapter_path in config.markdown_dir.glob("*.md"):
+            chapter = chapter_path.read_text(encoding="utf8")
+            if header in chapter:
+                return (chapter_path, chapter)
+        print(f"Error: cannot locate file containing {header}")
         sys.exit(1)
-    book[start:end] = codelines
-    config.combined_markdown.write_text(("\n".join(book)).strip(), encoding="utf8")
-
-
-def insert_new_version_of_example(javafilepath):
-    if not javafilepath.exists():
-        print("Error: cannot find {}".format(javafilepath))
-        sys.exit(1)
-    insert_example_in_book(javafilepath.read_text())
+    chapter_path, chapter = find_chapter_with_example()
+    print(f"{header} in {chapter_path.name}")
+    chapter_lines = chapter.splitlines()
+    start = chapter_lines.index(header)
+    end = chapter_lines.index("```", start)
+    print(f"{start}: {header}, {end}: '```'")
+    # chapter_lines[start:end] = codelines
+    # chapter_path.write_text(("\n".join(chapter)).strip(), encoding="utf8")
 
 
 @cli.command()
@@ -88,7 +93,7 @@ def format_and_include_new_output():
     """
     update_output_in_java_files()
     for new_version in config.example_dir.rglob("*.java"):
-        insert_new_version_of_example(new_version)
+        insert_example_in_book(new_version)
 
 
 if __name__ == "__main__":
